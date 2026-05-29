@@ -30,4 +30,3 @@ Open your router's terminal via SSH (e.g., PuTTY), paste the following command, 
 
 ```bash
 wget -qO- [https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh](https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh) | sh
-
