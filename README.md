@@ -30,9 +30,11 @@ Open your router's terminal via SSH (e.g., PuTTY), paste the following command, 
 
 ```bash
 wget -qO- [https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh](https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh) | sh
+
 🔄 Final Step
 After running the script, go to your router's web interface, navigate to the PassWall 2 -> Node List page, and press Ctrl + F5 in your browser to clear the browser cache and see the new button.
 </details>
+
 <details>
 <summary><b>🇮🇷 توضیحات و راهنمای فارسی (برای باز شدن کلیک کنید)</b></summary>
 درباره پروژه
