@@ -29,8 +29,8 @@ This patch automatically injects a smart "Test All URLs" button right next to th
 Open your router's terminal via SSH (e.g., PuTTY), paste the following command, and press Enter:
 
 ```bash
-wget -qO- [https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh](https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh) | sh
+wget -qO- https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh | sh
 
-🔄 Final Step
+### 🔄 Final Step
 After running the script, go to your router's web interface, navigate to the PassWall 2 -> Node List page, and press Ctrl + F5 in your browser to clear the browser cache and see the new button.
 </details>
