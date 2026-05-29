@@ -1,19 +1,19 @@
 #!/bin/sh
 
-# 1. Vorood be poosheh va gereftan backup az file asli
+# 1. Navigate to the directory and create a backup of the original file
 cd /usr/lib/lua/luci/view/passwall2/node_list/
 [ -f node_list.htm.bak ] || cp node_list.htm node_list.htm.bak
 
-# 2. Sakhtan file movaghat baraye tazrigh amne koderha
+# 2. Create a temporary JavaScript file for safe code injection
 cat << 'EOF' > patch.js
 function runAllUrlTests(){let d=0;document.querySelectorAll('table tr, .tr').forEach(r=>{let c=r.querySelectorAll('td, .td');if(c.length>4){c.forEach(el=>{let t=el.querySelector('a, button, [onclick], .cbi-button')||el;if(el.textContent.includes('Test')){setTimeout(()=>{t.click();let e=new MouseEvent('click',{bubbles:true,cancelable:true});t.dispatchEvent(e)},d);d+=150}})}})}
 EOF
 
-# 3. Tazrighe tabe javascript be ghabl az tag e script
+# 3. Inject the JavaScript function before the closing script tag
 sed -i '/<\/script>/i \\n' node_list.htm
 sed -i '/<\/script>/e cat patch.js' node_list.htm
 
-# 4. Tazrighe code HTML dokmeh be entehaye file
+# 4. Append the HTML button and DOM manipulation script to the end of the file
 cat << 'EOF' >> node_list.htm
 
 <script type="text/javascript">
@@ -32,7 +32,7 @@ cat << 'EOF' >> node_list.htm
 </script>
 EOF
 
-# 5. Tamiz kari va pak kardan cache LuCI baraye emal e taghyirat
+# 5. Clean up temporary files and clear LuCI cache to apply changes
 rm -f patch.js
 rm -rf /tmp/luci-indexcache /tmp/luci-modulecache
 
