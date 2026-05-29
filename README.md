@@ -12,7 +12,7 @@ Please choose your preferred language to see the description and installation gu
 ---
 
 <details>
-<summary><b>🇬🇧 English Description & Guide (Click to expand)</b></summary>
+<summary><b> English Description & Guide (Click to expand)</b></summary>
 
 ### About the Project
 When you have a large number of nodes/configurations in the PassWall 2 plugin, clicking the "Test" button for each individual node to check the latency (ping) can be tedious and time-consuming. 
