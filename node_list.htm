@@ -226,6 +226,28 @@ table td, .table .td {
 				});
 			}
 		});
+
+		// Globalized English Confirm Dialog
+		setTimeout(() => {
+			if (confirm('Testing completed. Would you like to automatically select all timed-out or failed nodes?')) {
+				document.querySelectorAll('table tr, .tr').forEach(row => {
+					let cells = row.querySelectorAll('td, .td');
+					if (cells.length > 4) {
+						let hasTimeout = false;
+						cells.forEach((cell) => {
+							let txt = cell.textContent || cell.innerText;
+							if (txt.includes('Timeout') || txt.includes('Error')) {
+								hasTimeout = true;
+							}
+						});
+						if (hasTimeout) {
+							let checkbox = row.querySelector('.nodes_select');
+							if (checkbox) checkbox.checked = true;
+						}
+					}
+				});
+			}
+		}, delay + 2500);
 	}
 	
 	function set_node(type, config) {
@@ -240,7 +262,7 @@ table td, .table .td {
 			var port = document.getElementById("cbid.passwall2." + id + ".port").value;
 		}
 		catch(err){}
-		//å¤æ­æ¯å¢å«ææ±å­
+		//å¤æ­æ¯å¢å«æ¥æ±å­
 		var reg = new RegExp("[\\u4E00-\\u9FFF]+","g");
 		if ((address != null && address != "") && (port != null && port != "") && reg.test(address) == false) {
 			return { address: address, port: port };
@@ -303,7 +325,8 @@ table td, .table .td {
 		}
 	}
 	
-	function ping_node(cbi_id, dom, type) { Full = get_address_full(cbi_id);
+	function ping_node(cbi_id, dom, type) {
+		var full = get_address_full(cbi_id);
 		if (full != null) {
 			dom.onclick = null
 			dom.innerText = "<%:Check...%>";
@@ -341,7 +364,7 @@ table td, .table .td {
 				var full = get_address_full(cbi_id);
 				if (full != null) {
 					var flag = false;
-					//å½æå¤ä¸ªç¸å喆ç½®å°åå¼ç«¯å£æ¶åå¨ä¸èµ·
+					//å½æå¤ä¸ªç¸åå°åå¼ç«¯å£æ¶åå¨ä¸èµ·
 					for (var j = 0; j < nodes.length; j++) {
 						if (nodes[j].address == full.address && nodes[j].port == full.port) {
 							nodes[j].indexs = nodes[j].indexs + "," + i;
@@ -426,7 +449,7 @@ table td, .table .td {
 			new_div += '<input class="btn cbi-button" type="button" value="<%:To Top%>" onclick="_cbi_row_top(\'' + id + '\')"/>&nbsp;&nbsp;';
 			//æ·»å "åºç¨"æé®
 			new_div += '<input class="btn cbi-button cbi-button-apply" type="button" value="<%:Use%>" id="apply_' + id + '" onclick="open_set_node_div(\'' + id + '\')"/>&nbsp;&nbsp;';
-			//æ·»å "å¤å¶"æé®
+			//æ·»å "å¤åفی"æé®
 			new_div += '<input class="btn cbi-button cbi-button-add" type="button" value="<%:Copy%>" onclick="copy_node(\'' + id + '\')"/>&nbsp;&nbsp;';
 			td.innerHTML = new_div + td.innerHTML;
 			
@@ -497,16 +520,16 @@ table td, .table .td {
 </div>
 
 <script type="text/javascript">
- window.addEventListener('DOMContentLoaded', (event) => {
-  var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]');
-  if(deleteBtn) {
-   var testAllBtn = document.createElement('input');
-   testAllBtn.type = 'button';
-   testAllBtn.className = 'cbi-button cbi-button-apply';
-   testAllBtn.value = 'Test All URLs';
-   testAllBtn.style = 'margin-left: 5px; background-color: #e1e1e1; color: #333333; border: 1px solid #ccc; font-weight: bold;';
-   testAllBtn.onclick = runAllUrlTests;
-   deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn.nextSibling);
-  }
- });
+	window.addEventListener('DOMContentLoaded', (event) => {
+		var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]');
+		if(deleteBtn && !document.querySelector('input[value="Test All URLs"]')) {
+			var testAllBtn = document.createElement('input');
+			testAllBtn.type = 'button';
+			testAllBtn.className = 'cbi-button cbi-button-apply';
+			testAllBtn.value = 'Test All URLs';
+			testAllBtn.style = 'margin-left: 5px; background-color: #e1e1e1; color: #333333; border: 1px solid #ccc; font-weight: bold;';
+			testAllBtn.onclick = runAllUrlTests;
+			deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn.nextSibling);
+		}
+	});
 </script>
