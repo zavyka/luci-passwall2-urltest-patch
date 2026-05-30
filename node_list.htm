@@ -188,12 +188,6 @@ table td, .table .td {
 					},
 					function(x, data) {
 						if (x && x.status == 200) {
-							/*
-							for (var i = 0 ; i < ids.length; i++) {
-								var box = document.getElementById("cbi-passwall2-" + ids[i]);
-								box.remove();
-							}
-							*/
 							window.location.href = '<%=api.url("node_list")%>';
 						}
 						else {
@@ -207,7 +201,6 @@ table td, .table .td {
 			alert("<%:You no select nodes !%>");
 		}
 	}
-	
 	function runAllUrlTests() {
 		let delay = 0;
 		document.querySelectorAll('table tr, .tr').forEach(row => {
@@ -227,22 +220,20 @@ table td, .table .td {
 			}
 		});
 
-		// Globalized English Confirm Dialog
+		// Targeted scanning: Check ONLY the URL Test column (Column index 4)
 		setTimeout(() => {
-			if (confirm('Testing completed. Would you like to automatically select all timed-out or failed nodes?')) {
+			if (confirm('Testing completed. Would you like to automatically select failed nodes based ONLY on URL Test results?')) {
 				document.querySelectorAll('table tr, .tr').forEach(row => {
 					let cells = row.querySelectorAll('td, .td');
 					if (cells.length > 4) {
-						let hasTimeout = false;
-						cells.forEach((cell) => {
-							let txt = cell.textContent || cell.innerText;
+						// Target the exact URL Test column (5th cell -> index 4)
+						let urlTestCell = cells[4]; 
+						if (urlTestCell) {
+							let txt = urlTestCell.textContent || urlTestCell.innerText;
 							if (txt.includes('Timeout') || txt.includes('Error')) {
-								hasTimeout = true;
+								let checkbox = row.querySelector('.nodes_select');
+								if (checkbox) checkbox.checked = true;
 							}
-						});
-						if (hasTimeout) {
-							let checkbox = row.querySelector('.nodes_select');
-							if (checkbox) checkbox.checked = true;
 						}
 					}
 				});
@@ -262,7 +253,6 @@ table td, .table .td {
 			var port = document.getElementById("cbid.passwall2." + id + ".port").value;
 		}
 		catch(err){}
-		//å¤æ­æ¯å¢å«æ¥æ±å­
 		var reg = new RegExp("[\\u4E00-\\u9FFF]+","g");
 		if ((address != null && address != "") && (port != null && port != "") && reg.test(address) == false) {
 			return { address: address, port: port };
@@ -271,7 +261,6 @@ table td, .table .td {
 		}
 	}
 	
-	//è·åå½åä½¿ç¨çèç¹
 	function get_now_use_node() {
 		XHR.get('<%=api.url("get_now_use_node")%>', null,
 			function(x, result) {
@@ -279,10 +268,8 @@ table td, .table .td {
 				if (id) {
 					var dom = document.getElementById("cbi-passwall2-" + id);
 					if (dom) {
-						dom.title = "å½åä½¿ç¨çèç¹";
+						dom.title = "Current node";
 						dom.classList.add("_now_use_bg");
-						//var v = "<a style='color: red'>å½åèç¹ï¼</a>" + document.getElementById("cbid.passwall2." + id + ".remarks").value;
-						//document.getElementById("cbi-passwall2-" + id + "-remarks").innerHTML = v;
 						var dom_remarks = document.getElementById("cbi-passwall2-" + id + "-remarks");
 						if (dom_remarks) {
 							dom_remarks.classList.add("_now_use");
@@ -354,7 +341,6 @@ table td, .table .td {
 		}
 	}
 
-	/* èªå¨Ping */
 	function pingAllNodes() {
 		if (auto_detection_time == "icmp" || auto_detection_time == "tcping") {
 			var nodes = [];
@@ -364,7 +350,6 @@ table td, .table .td {
 				var full = get_address_full(cbi_id);
 				if (full != null) {
 					var flag = false;
-					//å½æå¤ä¸ªç¸åå°åå¼ç«¯å£æ¶åå¨ä¸èµ·
 					for (var j = 0; j < nodes.length; j++) {
 						if (nodes[j].address == full.address && nodes[j].port == full.port) {
 							nodes[j].indexs = nodes[j].indexs + "," + i;
@@ -443,13 +428,9 @@ table td, .table .td {
 			var id = onclick_str.substring(onclick_str.lastIndexOf('/') + 1, onclick_str.length - 1);
 			var td = edit_btn[i].parentNode;
 			var new_div = "";
-			//æ·»å "å¾é"æ¡
 			new_div += '<input class="cbi-input-checkbox nodes_select" type="checkbox" cbid="' + id + '" />&nbsp;&nbsp;';
-			//æ·»å "ç½®é¡¶"æé®
 			new_div += '<input class="btn cbi-button" type="button" value="<%:To Top%>" onclick="_cbi_row_top(\'' + id + '\')"/>&nbsp;&nbsp;';
-			//æ·»å "åºç¨"æé®
 			new_div += '<input class="btn cbi-button cbi-button-apply" type="button" value="<%:Use%>" id="apply_' + id + '" onclick="open_set_node_div(\'' + id + '\')"/>&nbsp;&nbsp;';
-			//æ·»å "å¤åفی"æé®
 			new_div += '<input class="btn cbi-button cbi-button-add" type="button" value="<%:Copy%>" onclick="copy_node(\'' + id + '\')"/>&nbsp;&nbsp;';
 			td.innerHTML = new_div + td.innerHTML;
 			
@@ -469,7 +450,6 @@ table td, .table .td {
 				node_list[add_from].push(obj);
 			else
 				node_list[add_from] = [];
-			
 		}
 		catch(err) {
 			console.error(err);
@@ -490,13 +470,11 @@ table td, .table .td {
 		document.getElementById("div_node_count").innerHTML = "<div style='margin-top:5px'>" + str + "</div>";
 	}
  
- 	//UIæ¸²æå®æååèªå¨Ping
 	window.onload = function () {
 		setTimeout(function () {
 			pingAllNodes();
 		}, 800);
 	};
-
 	//]]>
 </script>
 
