@@ -19,6 +19,10 @@ When you have a large number of nodes/configurations in the PassWall 2 plugin, c
 
 This patch automatically injects a smart "Test All URLs" button right next to the "Delete select nodes" button. With just a single click, it will sequentially trigger the URL test for all available configurations with a safe, optimized delay to prevent UI freezing.
 
+⚡ Smart Auto-Selection Feature
+
+Once the testing sequence is finished, a confirmation prompt will appear. With your permission, the script will automatically check (tick) all timed-out or failed configurations based ONLY on the URL Test column. This protects your other ping column metrics (like ICMP or TCPing) from accidental selection, allowing you to quickly review and delete all dead configs at once using the default delete button!
+
 ### Features
 - Auto-Backup: Automatically creates a backup of your original file (node_list.htm.bak) before applying any changes.
 - Theme Companion: Designed with a neutral color scheme that perfectly fits both Light and Dark LuCI themes.
@@ -45,6 +49,10 @@ After running the script, go to your router's web interface, navigate to the Pas
 
 این پچ به صورت خودکار یک دکمه‌ی اختصاصی و هوشمند به نام "Test All URLs" را درست در کنار دکمه‌های بالای جدول منوی Node List تزریق می‌کند. با فشردن این دکمه، تست پینگ تمامی کانفیگ‌ها به صورت زنجیره‌ای و پشت سر هم با یک تاخیر بهینه و ایمن (جهت جلوگیری از سنگین شدن مرورگر) اجرا می‌شود.
 
+⚡ قابلیت هوشمند انتخاب خودکار کانفیگ‌های مرده
+
+پس از اتمام زنجیره تست‌ها، یک پنجره تایید به شما نشان داده می‌شود که در صورت موافقت، اسکریپت به طور کاملاً خودکار تمام کانفیگ‌هایی را که در ستون اختصاصی URL Test وضعیت آن‌ها Timeout یا Error شده است تیک می‌زند. این تفکیک هوشمند باعث می‌شود وضعیت پینگ‌های دیگر (مانند ICMP یا TCPing) باعث تیک خوردن اشتباهی کانفیگ‌های سالم شما نشود؛ در نتیجه می‌توانید تنها با یک کلیک روی دکمه حذف پیش‌فرض پسوال تمامی کانفیگ‌های مرده را یک‌جا پاک‌سازی کنید!
+
 ### ویژگی‌ها
 - بکاپ خودکار: قبل از اعمال هرگونه تغییر، یک نسخه پشتیبان از فایل اصلی سیستم شما (node_list.htm.bak) تهیه می‌کند.
 - سازگار با انواع قالب‌ها: رنگ‌بندی دکمه به صورت خنثی طراحی شده تا در هر دو حالت روشن (Light) و تاریک (Dark) محیط لوسی کاملاً خوانا و شیک باشد.
@@ -52,7 +60,7 @@ After running the script, go to your router's web interface, navigate to the Pas
 - نصب آسان: بدون نیاز به هیچ نرم‌افزار جانبی (مانند WinSCP) و فقط از طریق ترمینال.
 
 ### 🛠 نحوه اجرا و نصب
-محیط ترمینال SSH روتر خود (مانند نرم‌افزار PuTTY) را باز کرده، دستور زیر را به صورت کامل کپی و پیست کنید و کلید Enter را بزنید:
+محیط ترمینال SSH روتر خود (مانند نرم‌افزار PuTTY) را باز کرده، دستور زیر را به صورت کامل copy و paste کنید و کلید Enter را بزنید:
 
 <pre><code>wget -qO- https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh | sh</code></pre>
 
