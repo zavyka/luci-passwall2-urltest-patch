@@ -202,13 +202,18 @@ table td, .table .td {
 		}
 	}
 	function runAllUrlTests() {
+		let totalTests = 0;
+		let completedTests = 0;
 		let delay = 0;
+
+		// 1. Count all test buttons in the table and schedule sequential execution
 		document.querySelectorAll('table tr, .tr').forEach(row => {
 			let cells = row.querySelectorAll('td, .td');
 			if (cells.length > 4) {
 				cells.forEach((cell) => {
 					let clickTarget = cell.querySelector('a, button, [onclick], .cbi-button') || cell;
 					if (cell.textContent.includes('Test')) {
+						totalTests++; // Increment total test queue counter
 						setTimeout(() => {
 							clickTarget.click();
 							let event = new MouseEvent('click', { bubbles: true, cancelable: true });
@@ -220,25 +225,42 @@ table td, .table .td {
 			}
 		});
 
-		// Targeted scanning: Check ONLY the URL Test column (Column index 4)
-		setTimeout(() => {
-			if (confirm('Testing completed. Would you like to automatically select failed nodes based ONLY on URL Test results?')) {
-				document.querySelectorAll('table tr, .tr').forEach(row => {
-					let cells = row.querySelectorAll('td, .td');
-					if (cells.length > 4) {
-						// Target the exact URL Test column (5th cell -> index 4)
-						let urlTestCell = cells[4]; 
-						if (urlTestCell) {
-							let txt = urlTestCell.textContent || urlTestCell.innerText;
-							if (txt.includes('Timeout') || txt.includes('Error')) {
-								let checkbox = row.querySelector('.nodes_select');
-								if (checkbox) checkbox.checked = true;
+		if (totalTests === 0) return;
+
+		// 2. Dynamic tracking of network requests to detect the absolute end of all tests
+		var origGet = XHR.get;
+		XHR.get = function(url, args, cb) {
+			if (url.indexOf('urltest_node') !== -1) {
+				var origCb = cb;
+				cb = function(x, result) {
+					if (origCb) origCb(x, result);
+					completedTests++;
+					
+					// Trigger prompt ONLY when every single request has settled
+					if (completedTests === totalTests) {
+						XHR.get = origGet; // Restore original XHR function
+						setTimeout(() => {
+							if (confirm('Testing completed. Would you like to automatically select failed nodes based ONLY on URL Test results?')) {
+								document.querySelectorAll('table tr, .tr').forEach(row => {
+									let cells = row.querySelectorAll('td, .td');
+									if (cells.length > 4) {
+										let urlTestCell = cells[4]; 
+										if (urlTestCell) {
+											let txt = urlTestCell.textContent || urlTestCell.innerText;
+											if (txt.includes('Timeout') || txt.includes('Error')) {
+												let checkbox = row.querySelector('.nodes_select');
+												if (checkbox) checkbox.checked = true;
+											}
+										}
+									}
+								});
 							}
-						}
+						}, 500);
 					}
-				});
+				};
 			}
-		}, delay + 2500);
+			return origGet.apply(this, arguments);
+		};
 	}
 	
 	function set_node(type, config) {
