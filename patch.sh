@@ -71,9 +71,9 @@ else
     echo -e "${YELLOW}Notice:${NC} An existing original backup was found. Skipping backup modification to protect your original files."
 fi
 
-# Download the pre-patched file from GitHub repository directly
+# Download the pre-patched file with optimized network protection (20s timeout)
 echo "Downloading the pre-patched interface file..."
-wget --no-check-certificate -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list.htm
+wget --no-check-certificate --timeout=20 --tries=1 -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list.htm
 
 # Verify download success and AUTOMATICALLY RESTORE BACKUP on failure
 if [ $? -ne 0 ]; then
@@ -82,7 +82,7 @@ if [ $? -ne 0 ]; then
     echo "                 DOWNLOAD ERROR                  "
     echo "#################################################"
     echo -e "${NC}"
-    echo -e "${YELLOW}Reason:${NC} Failed to download node_list.htm from GitHub."
+    echo -e "${YELLOW}Reason:${NC} Failed to download node_list.htm from GitHub (20s Timeout)."
     echo ""
     echo -e "${RED}Possible Causes:${NC}"
     echo " - No internet connection on the router."
