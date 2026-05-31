@@ -9,9 +9,40 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0;m' # No Color
 
+# =================================================
+#  BLOCK 1: SMART UNINSTALL SYSTEM
+# =================================================
+if [ "$1" = "uninstall" ]; then
+    echo "Initiating Uninstallation Process..."
+    
+    # Check if the backup file actually exists before trying to restore
+    if [ -f "${TARGET_PATH}.bak" ]; then
+        rm -f "$TARGET_PATH"
+        mv "${TARGET_PATH}.bak" "$TARGET_PATH"
+        
+        # Clean up LuCI Cache so changes apply immediately without rebooting
+        rm -f /tmp/luci-indexcache /tmp/luci-modulecache
+        
+        echo -e "${GREEN}=================================================${NC}"
+        echo -e "${GREEN} Patch successfully removed!${NC}"
+        echo -e " System restored to the original factory layout."
+        echo " Please refresh your browser using Ctrl + F5."
+        echo -e "${GREEN}=================================================${NC}"
+        exit 0
+    else
+        echo -e "${RED}Error: Original backup file (.bak) not found at:${NC}"
+        echo "       ${TARGET_PATH}.bak"
+        echo "Cannot perform automatic uninstallation."
+        exit 1
+    fi
+fi
+
+# =================================================
+#  BLOCK 2: STANDARD SAFE INSTALLATION SYSTEM
+# =================================================
 echo "Checking system compatibility..."
 
-# 1. Strict compatibility wall with dedicated Error Block Layout
+# Strict compatibility wall with dedicated Error Block Layout
 if [ ! -f "$TARGET_PATH" ]; then
     echo -e "${RED}"
     echo "#################################################"
@@ -33,10 +64,10 @@ fi
 
 echo -e "${GREEN}Compatibility check passed! Proceeding with installation...${NC}"
 
-# 2. Safely navigate to the directory now that we know the file exists
+# Safely navigate to the directory now that we know the file exists
 cd /usr/lib/lua/luci/view/passwall2/node_list/
 
-# 3. Smart Backup Logic - Protect the original untampered file
+# Smart Backup Logic - Protect the original untampered file
 if [ ! -f "node_list.htm.bak" ]; then
     cp node_list.htm node_list.htm.bak
     echo "Original system backup created successfully: node_list.htm.bak"
@@ -44,11 +75,11 @@ else
     echo -e "${YELLOW}Notice:${NC} An existing original backup was found. Skipping backup modification to protect your original files."
 fi
 
-# 4. Download the pre-patched file from GitHub repository directly
+# Download the pre-patched file from GitHub repository directly
 echo "Downloading the pre-patched interface file..."
 wget --no-check-certificate -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list.htm
 
-# 5. Verify download success and AUTOMATICALLY RESTORE BACKUP on failure
+# Verify download success and AUTOMATICALLY RESTORE BACKUP on failure
 if [ $? -ne 0 ]; then
     echo -e "${RED}"
     echo "#################################################"
@@ -80,7 +111,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 6. Clean up LuCI Cache ONLY if download was 100% successful
+# Clean up LuCI Cache ONLY if download was 100% successful
 rm -rf /tmp/luci-indexcache /tmp/luci-modulecache
 
 echo "================================================="
