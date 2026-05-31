@@ -2,6 +2,7 @@
 
 # Precise absolute path to the target file
 TARGET_PATH="/usr/lib/lua/luci/view/passwall2/node_list/node_list.htm"
+UNINSTALLER_PATH="/usr/bin/passwall2-urltest-uninstall"
 
 # Color constants for terminal output
 RED='\033[0;31m'
@@ -18,7 +19,7 @@ if [ "$1" = "uninstall" ]; then
         rm -f "$TARGET_PATH"
         mv "${TARGET_PATH}.bak" "$TARGET_PATH"
         rm -f /tmp/luci-indexcache /tmp/luci-modulecache
-        rm -f /usr/bin/passwall-unpatch
+        rm -f "$UNINSTALLER_PATH"
         
         echo -e "${GREEN}=================================================${NC}"
         echo -e "${GREEN} Patch successfully removed!${NC}"
@@ -112,17 +113,19 @@ rm -rf /tmp/luci-indexcache /tmp/luci-modulecache
 # =================================================
 #  BLOCK 3: CREATING PERMANENT OFFLINE UNINSTALLER
 # =================================================
-# Dynamically deploy the offline restoration script into the router's local command directory
-cat << 'EOF' > /usr/bin/passwall-unpatch
+# Deploying the uninstaller with a unique, project-specific name to prevent any future conflict
+cat << 'EOF' > /usr/bin/passwall2-urltest-uninstall
 #!/bin/sh
 TARGET_PATH="/usr/lib/lua/luci/view/passwall2/node_list/node_list.htm"
+UNINSTALLER_PATH="/usr/bin/passwall2-urltest-uninstall"
+
 if [ -f "${TARGET_PATH}.bak" ]; then
     rm -f "$TARGET_PATH"
     mv "${TARGET_PATH}.bak" "$TARGET_PATH"
     rm -f /tmp/luci-indexcache /tmp/luci-modulecache
-    rm -f /usr/bin/passwall-unpatch
+    rm -f "$UNINSTALLER_PATH"
     echo -e "\033[0;32m=================================================\033[0;m"
-    echo -e "\033[0;32mPassWall 2 Patch removed offline successfully!\033[0;m"
+    echo -e "\033[0;32mPassWall 2 URL-Test Patch removed successfully!\033[0;m"
     echo -e "System restored to the original factory layout."
     echo -e "Please refresh your browser using Ctrl + F5."
     echo -e "\033[0;32m=================================================\033[0;m"
@@ -132,10 +135,10 @@ fi
 EOF
 
 # Grant absolute execution privileges to the newly deployed offline command
-chmod +x /usr/bin/passwall-unpatch
+chmod +x /usr/bin/passwall2-urltest-uninstall
 
 echo "================================================="
 echo -e "${GREEN} PassWall 2 Test All URLs Patch Applied Successfully!${NC}"
-echo -e " Local offline uninstaller created: ${YELLOW}passwall-unpatch${NC}"
+echo -e " Local offline uninstaller created: ${YELLOW}passwall2-urltest-uninstall${NC}"
 echo " Please refresh your browser using Ctrl + F5."
 echo "================================================="
