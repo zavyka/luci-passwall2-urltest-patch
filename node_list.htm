@@ -26,8 +26,7 @@ table th, .table .th {
 
 table td, .table .td {
 	text-align: center;
-    /* white-space: nowrap; */
-    word-break: keep-all;
+	word-break: keep-all;
 }
 
 #set_node_div {
@@ -39,7 +38,7 @@ table td, .table .td {
 	z-index: 99;
 	text-align: center;
 	background: white;
-    box-shadow: darkgrey 10px 10px 30px 5px;
+	box-shadow: darkgrey 10px 10px 30px 5px;
 }
 
 ._now_use {
@@ -55,9 +54,9 @@ table td, .table .td {
 }
 
 @media (prefers-color-scheme: dark) {
-    ._now_use_bg {
-        background: #4a90e2 !important;
-    }
+	._now_use_bg {
+		background: #4a90e2 !important;
+	}
 }
 </style>
 
@@ -201,23 +200,22 @@ table td, .table .td {
 			alert("<%:You no select nodes !%>");
 		}
 	}
+
 	function runAllUrlTests() {
 		let totalTests = 0;
 		let completedTests = 0;
 		let delay = 0;
 
-		// 1. Target and count ONLY actual URL Test elements, avoiding static Shunt text
 		document.querySelectorAll('table tr, .tr').forEach(row => {
 			let cells = row.querySelectorAll('td, .td');
 			if (cells.length > 4) {
 				let urlTestCell = cells[4];
 				if (urlTestCell) {
-					// Find clickable elements that specifically trigger the urltest_node function
 					let clickTarget = urlTestCell.querySelector('a, button, [onclick], .cbi-button');
 					let onclickAttr = clickTarget ? clickTarget.getAttribute('onclick') : '';
 					
 					if (clickTarget && (urlTestCell.textContent.includes('Test') || (onclickAttr && onclickAttr.includes('urltest_node')))) {
-						totalTests++; // Increment only for valid, firing URL tests
+						totalTests++;
 						setTimeout(() => {
 							clickTarget.click();
 							let event = new MouseEvent('click', { bubbles: true, cancelable: true });
@@ -231,7 +229,6 @@ table td, .table .td {
 
 		if (totalTests === 0) return;
 
-		// 2. Dynamic tracking of active XHR requests for urltest_node
 		var origGet = XHR.get;
 		XHR.get = function(url, args, cb) {
 			if (url.indexOf('urltest_node') !== -1) {
@@ -240,9 +237,8 @@ table td, .table .td {
 					if (origCb) origCb(x, result);
 					completedTests++;
 					
-					// Trigger prompt only when all firing URL tests have returned a response
 					if (completedTests === totalTests) {
-						XHR.get = origGet; // Restore original XHR function
+						XHR.get = origGet;
 						setTimeout(() => {
 							if (confirm('Testing completed. Would you like to automatically select failed nodes based ONLY on URL Test results?')) {
 								document.querySelectorAll('table tr, .tr').forEach(row => {
@@ -453,12 +449,42 @@ table td, .table .td {
 			var onclick_str = edit_btn[i].getAttribute("onclick");
 			var id = onclick_str.substring(onclick_str.lastIndexOf('/') + 1, onclick_str.length - 1);
 			var td = edit_btn[i].parentNode;
-			var new_div = "";
-			new_div += '<input class="cbi-input-checkbox nodes_select" type="checkbox" cbid="' + id + '" />&nbsp;&nbsp;';
-			new_div += '<input class="btn cbi-button" type="button" value="<%:To Top%>" onclick="_cbi_row_top(\'' + id + '\')"/>&nbsp;&nbsp;';
-			new_div += '<input class="btn cbi-button cbi-button-apply" type="button" value="<%:Use%>" id="apply_' + id + '" onclick="open_set_node_div(\'' + id + '\')"/>&nbsp;&nbsp;';
-			new_div += '<input class="btn cbi-button cbi-button-add" type="button" value="<%:Copy%>" onclick="copy_node(\'' + id + '\')"/>&nbsp;&nbsp;';
-			td.innerHTML = new_div + td.innerHTML;
+			
+			// Safe Node Injection without breaking default Event Listeners or Row structures
+			if (td && !td.querySelector('.nodes_select')) {
+				var checkbox = document.createElement('input');
+				checkbox.className = 'cbi-input-checkbox nodes_select';
+				checkbox.type = 'checkbox';
+				checkbox.setAttribute('cbid', id);
+				checkbox.style.marginRight = '8px';
+
+				var topBtn = document.createElement('input');
+				topBtn.className = 'btn cbi-button';
+				topBtn.type = 'button';
+				topBtn.value = '<%:To Top%>';
+				topBtn.style.marginRight = '8px';
+				topBtn.onclick = function(id_val) { return function() { _cbi_row_top(id_val); }; }(id);
+
+				var applyBtn = document.createElement('input');
+				applyBtn.className = 'btn cbi-button cbi-button-apply';
+				applyBtn.type = 'button';
+				applyBtn.value = '<%:Use%>';
+				applyBtn.id = 'apply_' + id;
+				applyBtn.style.marginRight = '8px';
+				applyBtn.onclick = function(id_val) { return function() { open_set_node_div(id_val); }; }(id);
+
+				var copyBtn = document.createElement('input');
+				copyBtn.className = 'btn cbi-button cbi-button-add';
+				copyBtn.type = 'button';
+				copyBtn.value = '<%:Copy%>';
+				copyBtn.style.marginRight = '8px';
+				copyBtn.onclick = function(id_val) { return function() { copy_node(id_val); }; }(id);
+
+				td.insertBefore(copyBtn, td.firstChild);
+				td.insertBefore(applyBtn, td.firstChild);
+				td.insertBefore(topBtn, td.firstChild);
+				td.insertBefore(checkbox, td.firstChild);
+			}
 			
 			var obj = {};
 			obj.id = id;
