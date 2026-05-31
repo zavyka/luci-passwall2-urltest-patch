@@ -36,8 +36,13 @@ echo -e "${GREEN}Compatibility check passed! Proceeding with installation...${NC
 # 2. Safely navigate to the directory now that we know the file exists
 cd /usr/lib/lua/luci/view/passwall2/node_list/
 
-# 3. Create the backup since the environment is verified and safe
-[ -f node_list.htm.bak ] || cp node_list.htm node_list.htm.bak
+# 3. Smart Backup Logic - Protect the original untampered file
+if [ ! -f "node_list.htm.bak" ]; then
+    cp node_list.htm node_list.htm.bak
+    echo "Original system backup created successfully: node_list.htm.bak"
+else
+    echo -e "${YELLOW}Notice:${NC} An existing original backup was found. Skipping backup modification to protect your original files."
+fi
 
 # 4. Download the pre-patched file from GitHub repository directly
 wget --no-check-certificate -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list.htm
