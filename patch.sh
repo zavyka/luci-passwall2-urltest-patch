@@ -10,18 +10,15 @@ YELLOW='\033[0;33m'
 NC='\033[0;m' # No Color
 
 # =================================================
-#  BLOCK 1: SMART UNINSTALL SYSTEM
+#  BLOCK 1: SMART UNINSTALL SYSTEM (ONLINE ARGUMENT)
 # =================================================
 if [ "$1" = "uninstall" ]; then
     echo "Initiating Uninstallation Process..."
-    
-    # Check if the backup file actually exists before trying to restore
     if [ -f "${TARGET_PATH}.bak" ]; then
         rm -f "$TARGET_PATH"
         mv "${TARGET_PATH}.bak" "$TARGET_PATH"
-        
-        # Clean up LuCI Cache so changes apply immediately without rebooting
         rm -f /tmp/luci-indexcache /tmp/luci-modulecache
+        rm -f /usr/bin/passwall-unpatch
         
         echo -e "${GREEN}=================================================${NC}"
         echo -e "${GREEN} Patch successfully removed!${NC}"
@@ -30,9 +27,7 @@ if [ "$1" = "uninstall" ]; then
         echo -e "${GREEN}=================================================${NC}"
         exit 0
     else
-        echo -e "${RED}Error: Original backup file (.bak) not found at:${NC}"
-        echo "       ${TARGET_PATH}.bak"
-        echo "Cannot perform automatic uninstallation."
+        echo -e "${RED}Error: Original backup file (.bak) not found.${NC}"
         exit 1
     fi
 fi
@@ -114,7 +109,33 @@ fi
 # Clean up LuCI Cache ONLY if download was 100% successful
 rm -rf /tmp/luci-indexcache /tmp/luci-modulecache
 
+# =================================================
+#  BLOCK 3: CREATING PERMANENT OFFLINE UNINSTALLER
+# =================================================
+# Dynamically deploy the offline restoration script into the router's local command directory
+cat << 'EOF' > /usr/bin/passwall-unpatch
+#!/bin/sh
+TARGET_PATH="/usr/lib/lua/luci/view/passwall2/node_list/node_list.htm"
+if [ -f "${TARGET_PATH}.bak" ]; then
+    rm -f "$TARGET_PATH"
+    mv "${TARGET_PATH}.bak" "$TARGET_PATH"
+    rm -f /tmp/luci-indexcache /tmp/luci-modulecache
+    rm -f /usr/bin/passwall-unpatch
+    echo -e "\033[0;32m=================================================\033[0;m"
+    echo -e "\033[0;32mPassWall 2 Patch removed offline successfully!\033[0;m"
+    echo -e "System restored to the original factory layout."
+    echo -e "Please refresh your browser using Ctrl + F5."
+    echo -e "\033[0;32m=================================================\033[0;m"
+else
+    echo -e "\033[0;31mError: Backup file (.bak) not found! Cannot restore.\033[0;m"
+fi
+EOF
+
+# Grant absolute execution privileges to the newly deployed offline command
+chmod +x /usr/bin/passwall-unpatch
+
 echo "================================================="
 echo -e "${GREEN} PassWall 2 Test All URLs Patch Applied Successfully!${NC}"
+echo -e " Local offline uninstaller created: ${YELLOW}passwall-unpatch${NC}"
 echo " Please refresh your browser using Ctrl + F5."
 echo "================================================="
