@@ -15,19 +15,20 @@ Please choose your preferred language to see the description and installation gu
 <summary><b> English Description & Guide (Click to expand)</b></summary>
 
 ### About the Project
-When you have a large number of nodes/configurations in the PassWall 2 plugin, clicking the "Test" button for each individual node to check the latency (ping) can be tedious and time-consuming. 
+When you have a large number of nodes/configurations in the PassWall 2 plugin, clicking the "Test" button for each individual node to check the latency (ping) can be tedious and time-consuming.
 
-This patch automatically injects a smart "Test All URLs" button right next to the "Delete select nodes" button. With just a single click, it will sequentially trigger the URL test for all available configurations with a safe, optimized delay to prevent UI freezing.
+This patch automatically injects a smart **"Test All URLs"** button right next to the "Delete select nodes" button. With just a single click, it will sequentially trigger the URL test for all available configurations with a safe, optimized delay to prevent UI freezing.
 
 ⚡ Smart Auto-Selection Feature
 
-Once the testing sequence is finished, a confirmation prompt will appear. With your permission, the script will automatically check (tick) all timed-out or failed configurations based ONLY on the URL Test column. This protects your other ping column metrics (like ICMP or TCPing) from accidental selection, allowing you to quickly review and delete all dead configs at once using the default delete button!
+Once the testing sequence is finished, a confirmation prompt will appear. With your permission, the script will automatically check (tick) all timed-out or failed configurations based **ONLY** on the URL Test column. This protects your other ping column metrics (like ICMP or TCPing) from accidental selection, allowing you to quickly review and delete all dead configs at once using the default delete button!
 
 ### Features
-- Auto-Backup: Automatically creates a backup of your original file (node_list.htm.bak) before applying any changes.
-- Theme Companion: Designed with a neutral color scheme that perfectly fits both Light and Dark LuCI themes.
-- Idempotent Script: Safe to run multiple times; it will never create duplicate buttons or break your existing structure.
-- One-Click Install: No extra software (like WinSCP) required.
+**Auto-Backup:** Automatically creates a backup of your original file (`node_list.htm.bak`) before applying any changes.
+**Theme Companion:** Designed with a neutral color scheme that perfectly fits both Light and Dark LuCI themes.
+**Idempotent Script:** Safe to run multiple times; it will never create duplicate buttons or break your existing structure.
+**One-Click Install:** No extra software (like WinSCP) required.
+**Network & Compatibility Walls:** Embedded with a 20-second timeout guard for slow networks and strict directory validation to prevent bricking incompatible systems.
 
 ### 🛠 Installation
 Open your router's terminal via SSH (e.g., PuTTY), paste the following command, and press Enter:
@@ -36,6 +37,27 @@ Open your router's terminal via SSH (e.g., PuTTY), paste the following command, 
 
 ### 🔄 Final Step
 After running the script, go to your router's web interface, navigate to the PassWall 2 -> Node List page, and press Ctrl + F5 in your browser to clear the browser cache and see the new button.
+
+⏪ Uninstallation & Recovery
+
+If you ever need to remove the patch and restore your system to its factory layout, you can choose one of the following methods:
+Method 1: 🔌 Local Offline Method (Highly Recommended)
+
+You don't even need an internet connection! A dedicated local command is automatically generated on your router during installation. Simply type this word in your SSH terminal and hit Enter:
+
+<pre><code>passwall2-urltest-uninstall</code></pre>
+
+Method 2: 🌐 Online Method
+Alternatively, you can run the uninstallation trigger directly from GitHub
+
+<pre><code>wget -qO- [https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh](https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh) | sh -s uninstall</code></pre>
+
+Note: Both methods will restore your original factory backup, clean up the LuCI cache, and leave your router completely clean.
+
+
+⭐ Support the Project
+
+If this patch made your life easier and helped you clean up dead configurations quickly, please give this repository a Star! It takes just one click but motivates me to build and maintain more OpenWrt patches in the future. Thank you for your support! 🙌
 
 </details>
 
