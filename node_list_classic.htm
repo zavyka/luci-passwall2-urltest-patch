@@ -33,8 +33,8 @@ table td, .table .td {
     display: none;
     width: 30rem;
     position: fixed;
-    top:50%;
-    left:50%;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
     padding: 30px 20px;
     z-index: 999;
@@ -248,13 +248,20 @@ table td, .table .td {
                     if (completedTests === totalTests) {
                         XHR.get = origGet;
                         setTimeout(() => {
-                            if (confirm('Testing completed. Would you like to automatically select failed failed nodes based ONLY on URL Test results?')) {
+                            if (confirm('Testing completed. Would you like to automatically select failed nodes based ONLY on URL Test results?')) {
                                 document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
                                     let cells = row.querySelectorAll('td, .td');
                                     if (cells.length > 4) {
                                         let urlTestCell = cells[4]; 
                                         if (urlTestCell) {
                                             let txt = urlTestCell.textContent || urlTestCell.innerText;
+                                            let rowText = row.textContent || row.innerText || "";
+                                            
+                                            // 🛡️ SECURITY BARRIER: Allowed to test, but completely BLOCKED from automatic selection loop
+                                            if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
+                                                return; 
+                                            }
+                                            
                                             if (txt.includes('Timeout') || txt.includes('Error')) {
                                                 let checkbox = row.querySelector('.nodes_select');
                                                 if (checkbox) checkbox.checked = true;
@@ -579,7 +586,6 @@ table td, .table .td {
             }
             
             testAllBtn.onclick = runAllUrlTests;
-            // Inject right BEFORE Delete select nodes button (putting it between Clear and Delete)
             deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
         }
     });
