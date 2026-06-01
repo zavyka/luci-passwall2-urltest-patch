@@ -214,37 +214,28 @@ table td, .table .td {
         let completedTests = 0;
         let delay = 0;
 
-        // 🔄 SAFE COLD-RESET: Find all native anchors/buttons and restore them back to pristine state without HTML mutation
+        // 🔄 CLASSIC MASTER COLD-RESET: Re-render cells to default clickable hooks natively
         document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
             let cells = row.querySelectorAll('td, .td');
             if (cells.length > 4) {
                 let urlTestCell = cells[4];
-                if (urlTestCell) {
-                    let targetLink = urlTestCell.querySelector('a, button, input[type="button"]');
-                    if (targetLink) {
-                        targetLink.onclick = targetLink.getAttribute('data-orig-onclick') ? new Function(targetLink.getAttribute('data-orig-onclick')) : targetLink.onclick;
-                        targetLink.removeAttribute('data-busy');
-                        targetLink.style.color = "";
-                        
-                        // If it has standard text font elements inside, clean them up natively
-                        let fontEl = targetLink.querySelector('font') || targetLink;
-                        if(fontEl && (fontEl.textContent.includes('ms') || fontEl.textContent.includes('Timeout') || fontEl.textContent.includes('Error'))) {
-                            fontEl.textContent = "<%:Test%>";
-                        }
+                if (urlTestCell && (urlTestCell.textContent.includes('ms') || urlTestCell.textContent.includes('Timeout') || urlTestCell.textContent.includes('Error') || urlTestCell.textContent.includes('Check...'))) {
+                    let rowId = row.id ? row.id.replace("cbi-passwall2-", "") : "";
+                    if (rowId) {
+                        urlTestCell.innerHTML = '<span class="ping"><a href="javascript:void(0)" onclick="javascript:urltest_node(\'' + rowId + '\', this)"><%:Test%></a></span>';
                     }
                 }
             }
         });
 
+        // Trigger Queue Executor
         document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
             let cells = row.querySelectorAll('td, .td');
             if (cells.length > 4) {
                 let urlTestCell = cells[4];
                 if (urlTestCell) {
                     let clickTarget = urlTestCell.querySelector('a, button, [onclick], .cbi-button');
-                    let onclickAttr = clickTarget ? clickTarget.getAttribute('onclick') : '';
-                    
-                    if (clickTarget && (urlTestCell.textContent.includes('Test') || (onclickAttr && onclickAttr.includes('urltest_node')))) {
+                    if (clickTarget) {
                         totalTests++;
                         setTimeout(() => {
                             clickTarget.click();
@@ -344,9 +335,6 @@ table td, .table .td {
     
     function urltest_node(cbi_id, dom) {
         if (cbi_id != null) {
-            if(!dom.getAttribute('data-orig-onclick')) {
-                dom.setAttribute('data-orig-onclick', dom.getAttribute('onclick'));
-            }
             dom.onclick = null;
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("urltest_node")%>', { id: cbi_id },
