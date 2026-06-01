@@ -71,9 +71,9 @@ else
     echo -e "${YELLOW}Notice:${NC} An existing original backup was found. Skipping backup modification to protect your original files."
 fi
 
-# Download the pre-patched file with optimized network protection (20s timeout)
+# Download using BusyBox compatible syntax (using -T 20 for 20s timeout)
 echo "Downloading the pre-patched interface file..."
-wget --no-check-certificate --timeout=20 --tries=1 -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list.htm
+wget --no-check-certificate -T 20 -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list.htm
 
 # Verify download success and AUTOMATICALLY RESTORE BACKUP on failure
 if [ $? -ne 0 ]; then
@@ -113,7 +113,6 @@ rm -rf /tmp/luci-indexcache /tmp/luci-modulecache
 # =================================================
 #  BLOCK 3: CREATING PERMANENT OFFLINE UNINSTALLER
 # =================================================
-# Deploying the uninstaller with a unique, project-specific name to prevent any future conflict
 cat << 'EOF' > /usr/bin/passwall2-urltest-uninstall
 #!/bin/sh
 TARGET_PATH="/usr/lib/lua/luci/view/passwall2/node_list/node_list.htm"
@@ -134,7 +133,6 @@ else
 fi
 EOF
 
-# Grant absolute execution privileges to the newly deployed offline command
 chmod +x /usr/bin/passwall2-urltest-uninstall
 
 echo "================================================="
