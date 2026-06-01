@@ -33,8 +33,8 @@ table td, .table .td {
     display: none;
     width: 30rem;
     position: fixed;
-    top: 50%;
-    left: 50%;
+    top:50%;
+    left:50%;
     transform: translate(-50%, -50%);
     padding: 30px 20px;
     z-index: 999;
@@ -52,8 +52,8 @@ table td, .table .td {
     background: #5e72e445 !important;
 }
 
-.ping a:hover {
-    text-decoration: underline;
+.ping a:hover{
+    text-decoration : underline;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -146,15 +146,20 @@ table td, .table .td {
     function _cbi_row_top(id) {
         var dom = document.getElementById("cbi-passwall2-" + id);
         if (dom) {
-            var up = dom.getElementsByClassName("cbi-button-up");
-            if (up && up[0]) {
-                cbi_row_swap(up[0], true, 'cbi.sts.passwall2.nodes');
+            var container = document.getElementById("cbi-passwall2-nodes") || document.querySelector('.cbi-section') || document;
+            var trs = container.getElementsByClassName("cbi-section-table-row");
+            if (trs && trs.length > 0) {
+                var up = dom.getElementsByClassName("cbi-button-up");
+                if (up && up[0]) {
+                    cbi_row_swap(up[0], true, 'cbi.sts.passwall2.nodes');
+                }
             }
         }
     }
     
     function checked_all_node(btn) {
-        var doms = document.querySelectorAll(".nodes_select");
+        var container = document.getElementById("cbi-passwall2-nodes") || document.querySelector('.cbi-section') || document;
+        var doms = container.getElementsByClassName("nodes_select");
         if (doms && doms.length > 0) {
             for (var i = 0 ; i < doms.length; i++) {
                 doms[i].checked = true;
@@ -165,7 +170,8 @@ table td, .table .td {
     }
     
     function dechecked_all_node(btn) {
-        var doms = document.querySelectorAll(".nodes_select");
+        var container = document.getElementById("cbi-passwall2-nodes") || document.querySelector('.cbi-section') || document;
+        var doms = container.getElementsByClassName("nodes_select");
         if (doms && doms.length > 0) {
             for (var i = 0 ; i < doms.length; i++) {
                 doms[i].checked = false;
@@ -177,7 +183,8 @@ table td, .table .td {
     
     function delete_select_nodes() {
         var ids = [];
-        var doms = document.querySelectorAll(".nodes_select");
+        var container = document.getElementById("cbi-passwall2-nodes") || document.querySelector('.cbi-section') || document;
+        var doms = container.getElementsByClassName("nodes_select");
         if (doms && doms.length > 0) {
             for (var i = 0 ; i < doms.length; i++) {
                 if (doms[i].checked) {
@@ -241,7 +248,7 @@ table td, .table .td {
                     if (completedTests === totalTests) {
                         XHR.get = origGet;
                         setTimeout(() => {
-                            if (confirm('Testing completed. Would you like to automatically select failed nodes based ONLY on URL Test results?')) {
+                            if (confirm('Testing completed. Would you like to automatically select failed failed nodes based ONLY on URL Test results?')) {
                                 document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
                                     let cells = row.querySelectorAll('td, .td');
                                     if (cells.length > 4) {
@@ -291,7 +298,6 @@ table td, .table .td {
     function get_now_use_node() {
         XHR.get('<%=api.url("get_now_use_node")%>', null,
             function(x, result) {
-                if (!result) return;
                 var id = result["global"];
                 if (id) {
                     var dom = document.getElementById("cbi-passwall2-" + id);
@@ -314,7 +320,7 @@ table td, .table .td {
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("urltest_node")%>', { id: cbi_id },
                 function(x, result) {
-                    if(x && x.status == 200 && result) {
+                    if(x && x.status == 200) {
                         if (result.use_time == null || result.use_time.trim() == "") {
                             dom.outerHTML = "<font style='color:red'><%:Timeout%></font>";
                         } else {
@@ -345,7 +351,7 @@ table td, .table .td {
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("ping_node")%>', { address: full.address, port: full.port, type: type },
                 function(x, result) {
-                    if(x && x.status == 200 && result) {
+                    if(x && x.status == 200) {
                         if (result.ping == null || result.ping.trim() == "") {
                             dom.outerHTML = "<font style='color:red'><%:Timeout%></font>";
                         } else {
@@ -391,7 +397,7 @@ table td, .table .td {
             const _xhr = (index) => {
                 return new Promise((res) => {
                     const dom = nodes[index];
-                    if (!dom) return res();
+                    if (!dom) res()
                     ajax.post('<%=api.url("ping_node")%>', {
                             index: dom.indexs,
                             address: dom.address,
@@ -399,7 +405,7 @@ table td, .table .td {
                             type: auto_detection_time
                         },
                         function(x, result) {
-                            if (x && x.status == 200 && result) {
+                            if (x && x.status == 200) {
                                 var strs = dom.indexs.split(",");
                                 for (var i = 0; i < strs.length; i++) {
                                     if (result.ping == null || result.ping.trim() == "") {
@@ -442,15 +448,14 @@ table td, .table .td {
         }
     }
     
-    function processActionButtons() {
-        var edit_btn = document.getElementsByClassName("cbi-button cbi-button-edit");
-        if (edit_btn.length === 0) return;
+    document.addEventListener("DOMContentLoaded", function() {
+        var container = document.getElementById("cbi-passwall2-nodes") || document.querySelector('.cbi-section') || document;
+        var edit_btn = container.getElementsByClassName("cbi-button cbi-button-edit");
         
         for (var i = 0; i < edit_btn.length; i++) {
             try {
                 var onclick_str = edit_btn[i].getAttribute("onclick");
                 if (!onclick_str) continue;
-                
                 var id = onclick_str.substring(onclick_str.lastIndexOf('/') + 1, onclick_str.length - 1);
                 var td = edit_btn[i].parentNode;
                 
@@ -487,29 +492,27 @@ table td, .table .td {
                     td.insertBefore(applyBtn, td.firstChild);
                     td.insertBefore(topBtn, td.firstChild);
                     td.insertBefore(checkbox, td.firstChild);
-                    
-                    var obj = {};
-                    obj.id = id;
-                    var typeDom = document.getElementById("cbid.passwall2." + id + ".type");
-                    if (typeDom) obj.type = typeDom.value;
-                    
-                    var address_dom = document.getElementById("cbid.passwall2." + id + ".address");
-                    var port_dom = document.getElementById("cbid.passwall2." + id + ".port");
-                    if (address_dom && port_dom) {
-                        obj.address = address_dom.value;
-                        obj.port = port_dom.value;
-                    }
-                    
-                    node_count++;
-                    var addFromDom = document.getElementById("cbid.passwall2." + id + ".add_from");
-                    var add_from = addFromDom ? addFromDom.value : "";
-                    if (node_list[add_from]) {
-                        var exists = node_list[add_from].some(item => item.id === id);
-                        if (!exists) node_list[add_from].push(obj);
-                    } else {
-                        node_list[add_from] = [obj];
-                    }
                 }
+                
+                var obj = {};
+                obj.id = id;
+                var typeDom = document.getElementById("cbid.passwall2." + id + ".type");
+                if (typeDom) obj.type = typeDom.value;
+                
+                var address_dom = document.getElementById("cbid.passwall2." + id + ".address");
+                var port_dom = document.getElementById("cbid.passwall2." + id + ".port");
+                if (address_dom && port_dom) {
+                    obj.address = address_dom.value;
+                    obj.port = port_dom.value;
+                }
+                
+                node_count++;
+                var add_from_dom = document.getElementById("cbid.passwall2." + id + ".add_from");
+                var add_from = add_from_dom ? add_from_dom.value : "";
+                if (node_list[add_from])
+                    node_list[add_from].push(obj);
+                else
+                    node_list[add_from] = [obj];
             }
             catch(err) {
                 console.error(err);
@@ -518,28 +521,20 @@ table td, .table .td {
 
         get_now_use_node();
 
-        var countDiv = document.getElementById("div_node_count");
-        if (countDiv && Object.keys(node_list).length > 0 && countDiv.innerHTML === "") {
+        if (Object.keys(node_list).length > 0) {
             var str = "";
             for (var add_from in node_list) {
                 var num = node_list[add_from].length;
                 var displayName = add_from == "" ? "<%:Self add%>" : add_from;
                 str += displayName + " " + "<%:Node num%>: <a style='color: red'>" + num + "</a>&nbsp;&nbsp;&nbsp;";
             }
-            countDiv.innerHTML = "<div style='margin-top:5px'>" + str + "</div>";
+            var countDiv = document.getElementById("div_node_count");
+            if (countDiv) countDiv.innerHTML = "<div style='margin-top:5px'>" + str + "</div>";
         }
-    }
 
-    var observer = new MutationObserver(function(mutations) {
-        processActionButtons();
-    });
-    
-    document.addEventListener("DOMContentLoaded", function() {
-        observer.observe(document.body, { childList: true, subtree: true });
-        processActionButtons();
         setTimeout(function () {
             pingAllNodes();
-        }, 1000);
+        }, 800);
     });
     //]]>
 </script>
@@ -569,28 +564,23 @@ table td, .table .td {
         if(deleteBtn && !document.querySelector('input[value="Test All URLs"]')) {
             var testAllBtn = document.createElement('input');
             testAllBtn.type = 'button';
-            testAllBtn.id = 'btn_test_all_urls';
+            testAllBtn.className = 'cbi-button cbi-button-reset';
             testAllBtn.value = 'Test All URLs';
+            testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
             
-            // Re-designed styling for seamless Light/Dark mode integration
-            testAllBtn.className = 'cbi-button cbi-button-reset'; 
-            testAllBtn.style.marginLeft = '5px';
-            testAllBtn.style.fontWeight = 'bold';
-            testAllBtn.style.cursor = 'pointer';
-            
-            // Explicit color adjustments for high-contrast visibility in Dark Themes
             if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 testAllBtn.style.backgroundColor = '#454a54';
                 testAllBtn.style.color = '#ffffff';
                 testAllBtn.style.borderColor = '#5a6270';
             } else {
-                testAllBtn.style.backgroundColor = '#f4f5f7';
+                testAllBtn.style.backgroundColor = '#f7f9fa';
                 testAllBtn.style.color = '#333333';
-                testAllBtn.style.borderColor = '#d1d5db';
+                testAllBtn.style.borderColor = '#ccc';
             }
             
             testAllBtn.onclick = runAllUrlTests;
-            deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn.nextSibling);
+            // Inject right BEFORE Delete select nodes button (putting it between Clear and Delete)
+            deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
         }
     });
 </script>
