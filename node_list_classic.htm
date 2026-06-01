@@ -214,6 +214,20 @@ table td, .table .td {
         let completedTests = 0;
         let delay = 0;
 
+        // 🔄 CLASSIC COLD-RESET: Restore dynamically altered cell innerHTML structures
+        document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
+            let cells = row.querySelectorAll('td, .td');
+            if (cells.length > 4) {
+                let urlTestCell = cells[4];
+                if (urlTestCell && (urlTestCell.textContent.includes('ms') || urlTestCell.textContent.includes('Timeout') || urlTestCell.textContent.includes('Error'))) {
+                    let rowOnclick = row.id ? row.id.replace("cbi-passwall2-", "") : "";
+                    if (rowOnclick) {
+                        urlTestCell.innerHTML = '<input type="button" class="cbi-button btn_urltest" value="URL Test" onclick="run_urltest(\'' + rowOnclick + '\')" />';
+                    }
+                }
+            }
+        });
+
         document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
             let cells = row.querySelectorAll('td, .td');
             if (cells.length > 4) {
@@ -222,7 +236,7 @@ table td, .table .td {
                     let clickTarget = urlTestCell.querySelector('a, button, [onclick], .cbi-button');
                     let onclickAttr = clickTarget ? clickTarget.getAttribute('onclick') : '';
                     
-                    if (clickTarget && (urlTestCell.textContent.includes('Test') || (onclickAttr && onclickAttr.includes('urltest_node')))) {
+                    if (clickTarget && (urlTestCell.textContent.includes('Test') || (onclickAttr && onclickAttr.includes('urltest_node')) || (onclickAttr && onclickAttr.includes('run_urltest')))) {
                         totalTests++;
                         setTimeout(() => {
                             clickTarget.click();
@@ -239,7 +253,7 @@ table td, .table .td {
 
         var origGet = XHR.get;
         XHR.get = function(url, args, cb) {
-            if (url.indexOf('urltest_node') !== -1) {
+            if (url.indexOf('urltest_node') !== -1 || url.indexOf('node_urltest') !== -1) {
                 var origCb = cb;
                 cb = function(x, result) {
                     if (origCb) origCb(x, result);
@@ -257,7 +271,6 @@ table td, .table .td {
                                             let txt = urlTestCell.textContent || urlTestCell.innerText;
                                             let rowText = row.textContent || row.innerText || "";
                                             
-                                            // 🛡️ SECURITY BARRIER: Allowed to test, but completely BLOCKED from automatic selection loop
                                             if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
                                                 return; 
                                             }
@@ -323,7 +336,7 @@ table td, .table .td {
     
     function urltest_node(cbi_id, dom) {
         if (cbi_id != null) {
-            dom.onclick = null
+            dom.onclick = null;
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("urltest_node")%>', { id: cbi_id },
                 function(x, result) {
@@ -354,7 +367,7 @@ table td, .table .td {
     function ping_node(cbi_id, dom, type) {
         var full = get_address_full(cbi_id);
         if (full != null) {
-            dom.onclick = null
+            dom.onclick = null;
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("ping_node")%>', { address: full.address, port: full.port, type: type },
                 function(x, result) {
