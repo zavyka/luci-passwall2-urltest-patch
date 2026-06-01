@@ -71,9 +71,17 @@ else
     echo -e "${YELLOW}Notice:${NC} An existing original backup was found. Skipping backup modification to protect your original files."
 fi
 
-# Download using BusyBox compatible syntax (using -T 20 for 20s timeout)
-echo "Downloading the pre-patched interface file..."
-wget --no-check-certificate -T 20 -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list.htm
+# Dynamic Architecture Detection Logic
+echo "Analyzing PassWall 2 core components..."
+if grep -q "loadNodeList" "node_list.htm.bak"; then
+    echo -e "${GREEN}-> New PassWall 2 Template Architecture detected!${NC}"
+    echo "Downloading compliant pre-patched interface file..."
+    wget --no-check-certificate -T 20 -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list_new.htm
+else
+    echo -e "${GREEN}-> Classic PassWall 2 CBI Architecture detected!${NC}"
+    echo "Downloading compliant pre-patched interface file..."
+    wget --no-check-certificate -T 20 -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list_classic.htm
+fi
 
 # Verify download success and AUTOMATICALLY RESTORE BACKUP on failure
 if [ $? -ne 0 ]; then
@@ -82,7 +90,7 @@ if [ $? -ne 0 ]; then
     echo "                 DOWNLOAD ERROR                  "
     echo "#################################################"
     echo -e "${NC}"
-    echo -e "${YELLOW}Reason:${NC} Failed to download node_list.htm from GitHub (20s Timeout)."
+    echo -e "${YELLOW}Reason:${NC} Failed to download interface file from GitHub (20s Timeout)."
     echo ""
     echo -e "${RED}Possible Causes:${NC}"
     echo " - No internet connection on the router."
