@@ -214,6 +214,28 @@ table td, .table .td {
         let completedTests = 0;
         let delay = 0;
 
+        // 🔄 SAFE COLD-RESET: Find all native anchors/buttons and restore them back to pristine state without HTML mutation
+        document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
+            let cells = row.querySelectorAll('td, .td');
+            if (cells.length > 4) {
+                let urlTestCell = cells[4];
+                if (urlTestCell) {
+                    let targetLink = urlTestCell.querySelector('a, button, input[type="button"]');
+                    if (targetLink) {
+                        targetLink.onclick = targetLink.getAttribute('data-orig-onclick') ? new Function(targetLink.getAttribute('data-orig-onclick')) : targetLink.onclick;
+                        targetLink.removeAttribute('data-busy');
+                        targetLink.style.color = "";
+                        
+                        // If it has standard text font elements inside, clean them up natively
+                        let fontEl = targetLink.querySelector('font') || targetLink;
+                        if(fontEl && (fontEl.textContent.includes('ms') || fontEl.textContent.includes('Timeout') || fontEl.textContent.includes('Error'))) {
+                            fontEl.textContent = "<%:Test%>";
+                        }
+                    }
+                }
+            }
+        });
+
         document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
             let cells = row.querySelectorAll('td, .td');
             if (cells.length > 4) {
@@ -257,7 +279,6 @@ table td, .table .td {
                                             let txt = urlTestCell.textContent || urlTestCell.innerText;
                                             let rowText = row.textContent || row.innerText || "";
                                             
-                                            // 🛡️ SECURITY BARRIER: Allowed to test, but completely BLOCKED from automatic selection loop
                                             if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
                                                 return; 
                                             }
@@ -323,7 +344,10 @@ table td, .table .td {
     
     function urltest_node(cbi_id, dom) {
         if (cbi_id != null) {
-            dom.onclick = null
+            if(!dom.getAttribute('data-orig-onclick')) {
+                dom.setAttribute('data-orig-onclick', dom.getAttribute('onclick'));
+            }
+            dom.onclick = null;
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("urltest_node")%>', { id: cbi_id },
                 function(x, result) {
@@ -354,7 +378,7 @@ table td, .table .td {
     function ping_node(cbi_id, dom, type) {
         var full = get_address_full(cbi_id);
         if (full != null) {
-            dom.onclick = null
+            dom.onclick = null;
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("ping_node")%>', { address: full.address, port: full.port, type: type },
                 function(x, result) {
