@@ -73,7 +73,6 @@ table td, .table .td {
     let auto_detection_time = "<%=api.uci_get_type("global_other", "auto_detection_time", "0")%>"
     var node_list = {};
     var node_count = 0;
-    var patchAjaxList = []; // Array tracker for ghost tasks elimination
     
     var ajax = {
         post: function(url, data, fn_success, timeout, fn_timeout) {
@@ -104,7 +103,6 @@ table td, .table .td {
                     fn_success(xhr, json);
                 }
             };
-            patchAjaxList.push(xhr); // Register tracking hook
             xhr.send(code);
         },
         encode: function(obj) {
@@ -121,11 +119,6 @@ table td, .table .td {
         }
     }
     
-    function abortAllRunningPatchTests() {
-        patchAjaxList.forEach(xhr => { try { xhr.abort(); } catch(e){} });
-        patchAjaxList = [];
-    }
-
     function copy_node(cbi_id) {
         window.location.href = '<%=api.url("copy_node")%>' + "?section=" + cbi_id;
     }
@@ -216,33 +209,28 @@ table td, .table .td {
         }
     }
 
+    // ⚡ FACTORY RESET QUEUE TRIGGER ENGINE
     function runAllUrlTests() {
-        let totalTests = 0;
-        let completedTests = 0;
-        let delay = 0;
-
-        // 🛡️ GHOST EXTERMINATOR: Instantly kill any ongoing background AJAX requests from previous clicks
-        abortAllRunningPatchTests();
-        if (typeof XHR !== 'undefined' && XHR._active) {
+        // ۱. Kill all active XHR connections inside LuCI pool instantly
+        if (typeof XHR !== 'undefined' && XHR._active && XHR._active.length > 0) {
             XHR._active.forEach(xhr => { try { xhr.abort(); } catch(e){} });
+            XHR._active = [];
         }
 
-        // AUTO-UNCHECK LAYER: Wipe previous selections clean
-        document.querySelectorAll('.nodes_select').forEach(checkbox => {
-            checkbox.checked = false;
-        });
+        // ۲. Hard Clean Checkbox values
+        document.querySelectorAll('.nodes_select').forEach(cb => { cb.checked = false; });
         let selectAllBtn = document.getElementById('btn_select_all');
         if (selectAllBtn) {
             selectAllBtn.value = "<%:Select all%>";
             selectAllBtn.setAttribute("onclick", "checked_all_node(this)");
         }
 
-        // Re-render cells to pristine clickable hooks natively
+        // ۳. Standard UI Loop Clear - Zero-out MS, Timeout, or Error boxes smoothly
         document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
             let cells = row.querySelectorAll('td, .td');
             if (cells.length > 4) {
                 let urlTestCell = cells[4];
-                if (urlTestCell && (urlTestCell.textContent.includes('ms') || urlTestCell.textContent.includes('Timeout') || urlTestCell.textContent.includes('Error') || urlTestCell.textContent.includes('Check...'))) {
+                if (urlTestCell) {
                     let rowId = row.id ? row.id.replace("cbi-passwall2-", "") : "";
                     if (rowId) {
                         urlTestCell.innerHTML = '<span class="ping"><a href="javascript:void(0)" onclick="javascript:urltest_node(\'' + rowId + '\', this)"><%:Test%></a></span>';
@@ -251,28 +239,25 @@ table td, .table .td {
             }
         });
 
-        // Trigger Queue Executor
+        // ۴. Start Fresh Execution Loop
+        let totalTests = 0;
+        let completedTests = 0;
+        let delay = 0;
+
+        let activeTargets = [];
         document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
             let cells = row.querySelectorAll('td, .td');
             if (cells.length > 4) {
                 let urlTestCell = cells[4];
-                if (urlTestCell) {
-                    let clickTarget = urlTestCell.querySelector('a, button, [onclick], .cbi-button');
-                    if (clickTarget) {
-                        totalTests++;
-                        setTimeout(() => {
-                            clickTarget.click();
-                            let event = new MouseEvent('click', { bubbles: true, cancelable: true });
-                            clickTarget.dispatchEvent(event);
-                        }, delay);
-                        delay += 150;
-                    }
-                }
+                let clickTarget = urlTestCell ? urlTestCell.querySelector('a, button, .cbi-button') : null;
+                if (clickTarget) activeTargets.push(clickTarget);
             }
         });
 
+        totalTests = activeTargets.length;
         if (totalTests === 0) return;
 
+        // Hook XHR globally only for the current fresh batch group
         var origGet = XHR.get;
         XHR.get = function(url, args, cb) {
             if (url.indexOf('urltest_node') !== -1) {
@@ -282,7 +267,7 @@ table td, .table .td {
                     completedTests++;
                     
                     if (completedTests === totalTests) {
-                        XHR.get = origGet;
+                        XHR.get = origGet; // Unhook instantly upon batch arrival
                         setTimeout(() => {
                             if (confirm('Testing completed. Would you like to automatically select failed nodes based ONLY on URL Test results?')) {
                                 document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
@@ -311,6 +296,15 @@ table td, .table .td {
             }
             return origGet.apply(this, arguments);
         };
+
+        // Fire click triggers cleanly
+        activeTargets.forEach(target => {
+            setTimeout(() => {
+                let event = new MouseEvent('click', { bubbles: true, cancelable: true });
+                target.dispatchEvent(event);
+            }, delay);
+            delay += 150;
+        });
     }
     
     function set_node(type, config) {
@@ -358,9 +352,6 @@ table td, .table .td {
     
     function urltest_node(cbi_id, dom) {
         if (cbi_id != null) {
-            if(!dom.getAttribute('data-orig-onclick')) {
-                dom.setAttribute('data-orig-onclick', dom.getAttribute('onclick'));
-            }
             dom.onclick = null;
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("urltest_node")%>', { id: cbi_id },
