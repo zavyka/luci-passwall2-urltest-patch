@@ -355,7 +355,6 @@ table td, .table .td {
         for (var i = 0; i < nodes.length; i++) {
             let row = nodes[i].closest('tr');
             let rowText = row ? (row.textContent || row.innerText || "") : "";
-            // 🛡️ SECURITY LAYER: Do not allow bulk select methods to tick structural managers
             if (sectionChecked && (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest'))) {
                 continue;
             }
@@ -765,13 +764,6 @@ table td, .table .td {
         let completedTests = 0;
         let delay = 0;
 
-        urlTestTargets.forEach(target => {
-            setTimeout(() => {
-                target.click();
-            }, delay);
-            delay += 100;
-        });
-
         var originalXHRGet = XHR.get;
         XHR.get = function(url, args, callback) {
             if (url.indexOf('urltest_node') !== -1) {
@@ -790,7 +782,6 @@ table td, .table .td {
                                         let text = urlTestCell.textContent || urlTestCell.innerText;
                                         let rowText = row.textContent || row.innerText || "";
                                         
-                                        // 🛡️ SECURITY SHIELD: Allowed to ping, but explicitly excluded from automatic batch ticking loops
                                         if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
                                             return;
                                         }
@@ -809,6 +800,13 @@ table td, .table .td {
             }
             return originalXHRGet.apply(this, arguments);
         };
+
+        urlTestTargets.forEach(target => {
+            setTimeout(() => {
+                target.click();
+            }, delay);
+            delay += 100;
+        });
     }
 </script>
 
@@ -904,6 +902,7 @@ table td, .table .td {
         return str;
     }
 
+    // ⚡ FIX: Restored native PassWall core logic conditions to unblock original background ping sweeps properly
     function loadNodeList() {
         XHR.get('<%=api.url("get_node")%>', null, function(x, result) {
             var node_list = result
@@ -936,6 +935,8 @@ table td, .table .td {
                         var newDom = node_template.cloneNode(true);
                         newDom.classList.add("cbi-rowstyle-" + (i % 2 + 1));
                         var innerHTML = newDom.innerHTML;
+                        
+                        // Pristine unblocked render hooks matching native variable logic perfectly
                         if (auto_detection_time != "icmp" && o["address"]) {
                             innerHTML = innerHTML.split("{{ping}}").join('<span class="ping"><a href="javascript:void(0)" onclick="javascript:ping_node(\'{{id}}\', this, \'icmp\')"><%:Test%></a></span>');
                         } else {
@@ -1022,30 +1023,10 @@ table td, .table .td {
 
             get_now_use_node();
             
-            var actionWatcher = new MutationObserver(function() {
-                var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]') || document.querySelector('input[onclick*="delete_select_nodes"]');
-                if(deleteBtn && !document.getElementById('btn_test_all_urls')) {
-                    var testAllBtn = document.createElement('input');
-                    testAllBtn.type = 'button';
-                    testAllBtn.id = 'btn_test_all_urls';
-                    testAllBtn.className = 'cbi-button cbi-button-reset';
-                    testAllBtn.value = 'Test All URLs';
-                    testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
-                    
-                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                        testAllBtn.style.backgroundColor = '#454a54';
-                        testAllBtn.style.color = '#ffffff';
-                        testAllBtn.style.borderColor = '#5a6270';
-                    } else {
-                        testAllBtn.style.backgroundColor = '#f4f5f7';
-                        testAllBtn.style.color = '#333333';
-                        testAllBtn.style.borderColor = '#d1d5db';
-                    }
-                    testAllBtn.onclick = runNativeAllUrlTests;
-                    deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
-                }
-            });
-            actionWatcher.observe(document.body, { childList: true, subtree: true });
+            // Trigger native automatic background scanning thread loop seamlessly matching user choices
+            setTimeout(function () {
+                if (typeof pingAllNodes === "function") pingAllNodes();
+            }, 500);
         });
     }
 
@@ -1091,6 +1072,32 @@ table td, .table .td {
                 onChange("auto_detection_time", auto_detection_time);
             });
         });
+        
+        var actionWatcher = new MutationObserver(function() {
+            var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]') || document.querySelector('input[onclick*="delete_select_nodes"]');
+            if(deleteBtn && !document.getElementById('btn_test_all_urls')) {
+                var testAllBtn = document.createElement('input');
+                testAllBtn.type = 'button';
+                testAllBtn.id = 'btn_test_all_urls';
+                testAllBtn.className = 'cbi-button cbi-button-reset';
+                testAllBtn.value = 'Test All URLs';
+                testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
+                
+                // 🎨 FIX: Enforce crisp and responsive native text colors across varying dark/light UI frameworks
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    testAllBtn.style.backgroundColor = '#454a54';
+                    testAllBtn.style.color = '#ffffff';
+                    testAllBtn.style.borderColor = '#5a6270';
+                } else {
+                    testAllBtn.style.backgroundColor = '#f4f5f7';
+                    testAllBtn.style.color = '#333333'; // Enforce absolute slate contrast text for light templates
+                    testAllBtn.style.borderColor = '#d1d5db';
+                }
+                testAllBtn.onclick = runNativeAllUrlTests;
+                deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
+            }
+        });
+        actionWatcher.observe(document.body, { childList: true, subtree: true });
     });
     //]]>
 </script>
