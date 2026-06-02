@@ -355,6 +355,7 @@ table td, .table .td {
         for (var i = 0; i < nodes.length; i++) {
             let row = nodes[i].closest('tr');
             let rowText = row ? (row.textContent || row.innerText || "") : "";
+            // 🛡️ SECURITY LAYER: Do not allow bulk select methods to tick structural managers
             if (sectionChecked && (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest'))) {
                 continue;
             }
@@ -521,7 +522,7 @@ table td, .table .td {
     }
     
     function urltest_node(cbi_id, dom) {
-        if (!cbi_id) return;
+        if (dom.dataset.busy == "1" || !cbi_id) return;
         dom.dataset.busy = "1";
         dom.style.color = "";
         dom.innerText = "<%:Check...%>";
@@ -547,7 +548,7 @@ table td, .table .td {
     }
 
     function ping_node(cbi_id, dom, type) {
-        if (!cbi_id) return;
+        if (dom.dataset.busy == "1" || !cbi_id) return;
         const full = get_address_full(cbi_id);
         if ((type == "icmp" && full.address != "" ) || (type == "tcping" && full.address != "" && full.port != "")) {
             dom.dataset.busy = "1";
@@ -754,27 +755,11 @@ table td, .table .td {
         let visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]');
         if (!visibleContainer) return;
 
-        // 🔄 AUTO-UNCHECK LAYER: Clear old check sweeps from the UI group before starting a new run
-        visibleContainer.getElementsByClassName("nodes_select");
-        let activeCheckboxes = visibleContainer.querySelectorAll('.nodes_select');
-        activeCheckboxes.forEach(cb => {
-            cb.checked = false;
-        });
-        let selectAllChk = visibleContainer.querySelector(".nodes_select_all");
-        if (selectAllChk) selectAllChk.checked = false;
-
-        // Re-render container layout from pristine templates to force fresh clickable hooks
-        if(typeof loadNodeList === 'function') {
-            loadNodeList();
-            setTimeout(() => { executeTestSequence(document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]')); }, 200);
+        let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a');
+        if (urlTestTargets.length === 0) {
+            alert('No URL Test engines available in the current group.');
             return;
         }
-        executeTestSequence(visibleContainer);
-    }
-
-    function executeTestSequence(visibleContainer) {
-        let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a');
-        if (urlTestTargets.length === 0) return;
 
         let totalTests = urlTestTargets.length;
         let completedTests = 0;
@@ -805,6 +790,7 @@ table td, .table .td {
                                         let text = urlTestCell.textContent || urlTestCell.innerText;
                                         let rowText = row.textContent || row.innerText || "";
                                         
+                                        // 🛡️ SECURITY SHIELD: Allowed to ping, but explicitly excluded from automatic batch ticking loops
                                         if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
                                             return;
                                         }
@@ -877,7 +863,47 @@ table td, .table .td {
 </fieldset>
 
 <script type="text/javascript">
-    // (Rest of the standard loadNodeList initialization remains pristine)
+    function get_remarks_name(o) {
+        let str = "";
+        let remarks = o["remarks"] || "";
+        let type = o["type"] || "";
+        str += "<input type='hidden' id='cbid.<%=appname%>." + o[".name"] + ".type' value='" + type + "'/>";
+        if (type == "sing-box" || type == "Xray") {
+            let protocol = o["protocol"]
+            let p = "";
+            if (protocol == "_balancing") p = "<%:Balancing%>";
+            else if (protocol == "_urltest") p = "URLTest";
+            else if (protocol == "_shunt") p = "<%:Shunt%>";
+            else if (protocol == "_iface") p = "<%:Interface%>";
+            else if (protocol == "vmess") p = "VMess";
+            else if (protocol == "vless") p = "VLESS";
+            else if (protocol == "shadowsocks") p = "SS";
+            else if (protocol == "shadowsocksr") p = "SSR";
+            else if (protocol == "wireguard") p = "WG";
+            else if (protocol == "hysteria") p = "HY";
+            else if (protocol == "hysteria2") p = "HY2";
+            else if (protocol == "anytls") p = "AnyTLS";
+            else if (protocol == "ssh") p = "SSH";
+            else {
+                if (protocol && protocol.length > 1) {
+                    p = protocol.charAt(0).toUpperCase() + protocol.slice(1);
+                }
+            }
+            if (type == "sing-box") type = "Sing-Box";
+            type += " " + p;
+        }
+        let address = o["address"] || "";
+        let port = o["port"] || "";
+        let port_s = port !== "" ? port : (o["hysteria_hop"] || o["hysteria2_hop"]);
+        
+        if ((o.type === "Hysteria2" || o.protocol === 'hysteria2') && o.hysteria2_realms) {
+            str += type + " Realm：" + remarks;
+        } else {
+            str += type + "：" + remarks;
+        }
+        return str;
+    }
+
     function loadNodeList() {
         XHR.get('<%=api.url("get_node")%>', null, function(x, result) {
             var node_list = result
@@ -995,6 +1021,31 @@ table td, .table .td {
             }
 
             get_now_use_node();
+            
+            var actionWatcher = new MutationObserver(function() {
+                var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]') || document.querySelector('input[onclick*="delete_select_nodes"]');
+                if(deleteBtn && !document.getElementById('btn_test_all_urls')) {
+                    var testAllBtn = document.createElement('input');
+                    testAllBtn.type = 'button';
+                    testAllBtn.id = 'btn_test_all_urls';
+                    testAllBtn.className = 'cbi-button cbi-button-reset';
+                    testAllBtn.value = 'Test All URLs';
+                    testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
+                    
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        testAllBtn.style.backgroundColor = '#454a54';
+                        testAllBtn.style.color = '#ffffff';
+                        testAllBtn.style.borderColor = '#5a6270';
+                    } else {
+                        testAllBtn.style.backgroundColor = '#f4f5f7';
+                        testAllBtn.style.color = '#333333';
+                        testAllBtn.style.borderColor = '#d1d5db';
+                    }
+                    testAllBtn.onclick = runNativeAllUrlTests;
+                    deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
+                }
+            });
+            actionWatcher.observe(document.body, { childList: true, subtree: true });
         });
     }
 
@@ -1040,31 +1091,6 @@ table td, .table .td {
                 onChange("auto_detection_time", auto_detection_time);
             });
         });
-        
-        var actionWatcher = new MutationObserver(function() {
-            var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]') || document.querySelector('input[onclick*="delete_select_nodes"]');
-            if(deleteBtn && !document.getElementById('btn_test_all_urls')) {
-                var testAllBtn = document.createElement('input');
-                testAllBtn.type = 'button';
-                testAllBtn.id = 'btn_test_all_urls';
-                testAllBtn.className = 'cbi-button cbi-button-reset';
-                testAllBtn.value = 'Test All URLs';
-                testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
-                
-                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    testAllBtn.style.backgroundColor = '#454a54';
-                    testAllBtn.style.color = '#ffffff';
-                    testAllBtn.style.borderColor = '#5a6270';
-                } else {
-                    testAllBtn.style.backgroundColor = '#f4f5f7';
-                    testAllBtn.style.color = '#333333';
-                    testAllBtn.style.borderColor = '#d1d5db';
-                }
-                testAllBtn.onclick = runNativeAllUrlTests;
-                deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
-            }
-        });
-        actionWatcher.observe(document.body, { childList: true, subtree: true });
     });
     //]]>
 </script>
