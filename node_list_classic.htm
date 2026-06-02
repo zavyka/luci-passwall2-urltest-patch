@@ -214,7 +214,17 @@ table td, .table .td {
         let completedTests = 0;
         let delay = 0;
 
-        // 🔄 CLASSIC MASTER COLD-RESET: Re-render cells to default clickable hooks natively
+        // 🔄 AUTO-UNCHECK LAYER: Remove all existing checks on restart sweep
+        document.querySelectorAll('.nodes_select').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        let selectAllBtn = document.getElementById('btn_select_all');
+        if (selectAllBtn) {
+            selectAllBtn.value = "<%:Select all%>";
+            selectAllBtn.setAttribute("onclick", "checked_all_node(this)");
+        }
+
+        // Re-render cells to default clickable hooks natively
         document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
             let cells = row.querySelectorAll('td, .td');
             if (cells.length > 4) {
@@ -335,6 +345,9 @@ table td, .table .td {
     
     function urltest_node(cbi_id, dom) {
         if (cbi_id != null) {
+            if(!dom.getAttribute('data-orig-onclick')) {
+                dom.setAttribute('data-orig-onclick', dom.getAttribute('onclick'));
+            }
             dom.onclick = null;
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("urltest_node")%>', { id: cbi_id },
