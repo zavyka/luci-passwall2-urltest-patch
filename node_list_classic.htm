@@ -143,15 +143,22 @@ table td, .table .td {
         if (setNodeName) setNodeName.innerHTML = "";
     }
     
+    // ⚡ FIX: Hard-patched classic "To Top" function to jump straight to the absolute first data row position
     function _cbi_row_top(id) {
         var dom = document.getElementById("cbi-passwall2-" + id);
         if (dom) {
             var container = document.getElementById("cbi-passwall2-nodes") || document.querySelector('.cbi-section') || document;
-            var trs = container.getElementsByClassName("cbi-section-table-row");
-            if (trs && trs.length > 0) {
-                var up = dom.getElementsByClassName("cbi-button-up");
-                if (up && up[0]) {
-                    cbi_row_swap(up[0], true, 'cbi.sts.passwall2.nodes');
+            var tbody = dom.parentNode;
+            if (tbody) {
+                var firstRow = tbody.querySelector("tr:not(.cbi-section-table-titles)");
+                if (firstRow && firstRow !== dom) {
+                    tbody.insertBefore(dom, firstRow);
+                    // Force LuCI's built-in order tracker to register the new top placement state
+                    var upButton = dom.getElementsByClassName("cbi-button-up")[0];
+                    if (upButton && typeof cbi_row_swap === "function") {
+                        var hiddenInput = dom.querySelector('input[type="hidden"][name*=".order"]');
+                        if (hiddenInput) hiddenInput.value = "1";
+                    }
                 }
             }
         }
@@ -257,7 +264,6 @@ table td, .table .td {
                                             let txt = urlTestCell.textContent || urlTestCell.innerText;
                                             let rowText = row.textContent || row.innerText || "";
                                             
-                                            // 🛡️ SECURITY BARRIER: Allowed to test, but completely BLOCKED from automatic selection loop
                                             if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
                                                 return; 
                                             }
@@ -323,7 +329,7 @@ table td, .table .td {
     
     function urltest_node(cbi_id, dom) {
         if (cbi_id != null) {
-            dom.onclick = null
+            dom.onclick = null;
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("urltest_node")%>', { id: cbi_id },
                 function(x, result) {
@@ -354,7 +360,7 @@ table td, .table .td {
     function ping_node(cbi_id, dom, type) {
         var full = get_address_full(cbi_id);
         if (full != null) {
-            dom.onclick = null
+            dom.onclick = null;
             dom.innerText = "<%:Check...%>";
             XHR.get('<%=api.url("ping_node")%>', { address: full.address, port: full.port, type: type },
                 function(x, result) {
