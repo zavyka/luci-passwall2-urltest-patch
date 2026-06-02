@@ -73,6 +73,7 @@ table td, .table .td {
     let auto_detection_time = "<%=api.uci_get_type("global_other", "auto_detection_time", "0")%>"
     var node_list = {};
     var node_count = 0;
+    var patchAjaxList = []; // Array tracker for ghost tasks elimination
     
     var ajax = {
         post: function(url, data, fn_success, timeout, fn_timeout) {
@@ -103,6 +104,7 @@ table td, .table .td {
                     fn_success(xhr, json);
                 }
             };
+            patchAjaxList.push(xhr); // Register tracking hook
             xhr.send(code);
         },
         encode: function(obj) {
@@ -119,6 +121,11 @@ table td, .table .td {
         }
     }
     
+    function abortAllRunningPatchTests() {
+        patchAjaxList.forEach(xhr => { try { xhr.abort(); } catch(e){} });
+        patchAjaxList = [];
+    }
+
     function copy_node(cbi_id) {
         window.location.href = '<%=api.url("copy_node")%>' + "?section=" + cbi_id;
     }
@@ -214,7 +221,13 @@ table td, .table .td {
         let completedTests = 0;
         let delay = 0;
 
-        // 🔄 AUTO-UNCHECK LAYER: Remove all existing checks on restart sweep
+        // 🛡️ GHOST EXTERMINATOR: Instantly kill any ongoing background AJAX requests from previous clicks
+        abortAllRunningPatchTests();
+        if (typeof XHR !== 'undefined' && XHR._active) {
+            XHR._active.forEach(xhr => { try { xhr.abort(); } catch(e){} });
+        }
+
+        // AUTO-UNCHECK LAYER: Wipe previous selections clean
         document.querySelectorAll('.nodes_select').forEach(checkbox => {
             checkbox.checked = false;
         });
@@ -224,7 +237,7 @@ table td, .table .td {
             selectAllBtn.setAttribute("onclick", "checked_all_node(this)");
         }
 
-        // Re-render cells to default clickable hooks natively
+        // Re-render cells to pristine clickable hooks natively
         document.querySelectorAll('table tr, .tr, .cbi-section-table-row').forEach(row => {
             let cells = row.querySelectorAll('td, .td');
             if (cells.length > 4) {
