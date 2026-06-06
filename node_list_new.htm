@@ -1,5 +1,6 @@
 <%
 local api = require "luci.passwall2.api"
+-- 🛡️ پچ اختصاصی: گارد خنثی‌کننده متغیر لوکال برای مهار باگ صفحه سفید در ریلزهای ۳ و ۴
 local appname = api.appname or "passwall2"
 local uci = api.uci
 
@@ -11,8 +12,7 @@ if node then
     local node_protocol = api.uci_get_type_id(node, "protocol")
     if node_type == "Xray" and node_protocol == "_shunt" then
         default_node_type = node_protocol
-        -- 🛡️ Safeguard: Enforced pristine uci parsing string to secure Late-2025 Hybrid layouts
-        uci:foreach("passwall2", "shunt_rules", function(e)
+        uci:foreach(appname, "shunt_rules", function(e)
             if e[".name"] and e.remarks then
                 shunt_rule_list[#shunt_rule_list + 1] = e
             end
@@ -20,7 +20,7 @@ if node then
     end
 end
 -%>
-<script src="<%=resource%>/view/<%=appname%>/Sortable.min.js"></script>
+<script src="<%=resource%>/view/<%=api.appname%>/Sortable.min.js"></script>
 
 <style>
 table th, .table .th {
@@ -29,6 +29,7 @@ table th, .table .th {
 
 table td, .table .td {
     text-align: center;
+    /* white-space: nowrap; */
     word-break: keep-all;
 }
 
@@ -37,14 +38,11 @@ table td, .table .td {
     width: 30rem;
     position: fixed;
     top:50%;
-    left:50%;
-    transform: translate(-50%, -50%);
-    padding: 30px 20px;
-    z-index: 999;
+    padding-top: 30px;
+    z-index: 99;
     text-align: center;
     background: white;
     box-shadow: darkgrey 10px 10px 30px 5px;
-    border-radius: 4px;
 }
 
 ._now_use_bg {
@@ -61,11 +59,6 @@ table td, .table .td {
 @media (prefers-color-scheme: dark) {
     ._now_use_bg {
         background: #4a90e2 !important;
-    }
-    #set_node_div {
-        background: #2d3035;
-        color: #fff;
-        box-shadow: rgba(0, 0, 0, 0.5) 10px 10px 30px 5px;
     }
 }
 
@@ -113,6 +106,7 @@ table td, .table .td {
     display: none;
 }
 
+/* enable flex for small screens*/
 @media screen and (max-width: 1152px) {
     .cbi-section-table-row {
         display: flex;
@@ -123,12 +117,13 @@ table td, .table .td {
 
     #cbi-<%=appname%>-nodes-default-fieldset {
         margin: 0;
-    }
+}
 
     .cbi-section-table-titles {
         display: none !important;
     }
 
+    /* meticulously control how each component occupies the limited space we have */
     #cbi-<%=appname%>-nodes .pw-checkbox, #cbi-<%=appname%>-nodes th:nth-child(1) {
         flex: 0 0 40px;
         min-width: 0;
@@ -156,6 +151,7 @@ table td, .table .td {
     }
 }
 
+/* shrink actionbar even further for mobile devices */
 @media screen and (max-width: 500px) {
     .node-wrapper {
         gap: 0;
@@ -203,6 +199,7 @@ table td, .table .td {
 
     function cbi_t_switch(section, tab) {
         if( cbi_t[section] && cbi_t[section][tab] ) {
+            // Before switching tabs, first deselect all currently active tabs.
             dechecked_all_node();
             var o = cbi_t[section][tab];
             var h = document.getElementById('tab.' + section);
@@ -248,7 +245,7 @@ table td, .table .td {
             var code = ajax.encode(data);
             xhr.open("POST", url, true);
             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            
+             
             if (timeout && timeout > 1000) {
                 xhr.timeout = timeout;
             }
@@ -278,12 +275,18 @@ table td, .table .td {
             obj = obj ? obj : { };
             obj['_'] = Math.random();
 
-            if (typeof obj == 'object') {
+            if (typeof obj == 'object')
+            {
                 var code = '';
+                var self = this;
+
                 for (var k in obj)
-                    code += (code ? '&' : '') + k + '=' + encodeURIComponent(obj[k]);
+                    code += (code ? '&' : '') +
+                        k + '=' + encodeURIComponent(obj[k]);
+
                 return code;
             }
+
             return obj;
         }
     }
@@ -354,6 +357,7 @@ table td, .table .td {
         var selectAllChk = visibleContainer.querySelector(".nodes_select_all");
         var selectAllBtn = document.getElementById("select_all_btn");
         for (var i = 0; i < nodes.length; i++) {
+            -- 🛡️ پچ اختصاصی: فیلتر کردن هوشمند لایه شانت از لوپ سلکت کل پنل روتر برای مهار خطای انتخاب نودهای شانت
             let row = nodes[i].closest('tr');
             let rowText = row ? (row.textContent || row.innerText || "") : "";
             if (sectionChecked && (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest'))) {
@@ -398,7 +402,7 @@ table td, .table .td {
         function updateElement(el) {
             if (!el) return;
             if ("checked" in el) el.checked = allChecked;
-            if ("title" in el) el.title = title;
+  * 🛡️ پچ اختصاصی: فیلتر کردن هوشمند لایه شانت از لوپ سلکت کل پنل روتر برای مهار خطای انتخاب نودهای شانت        if ("title" in el) el.title = title;
             if ("value" in el) el.value = title;
             el.setAttribute("onclick", onclickFunc);
         }
@@ -406,7 +410,7 @@ table td, .table .td {
         updateElement(selectAllChk);
         updateElement(selectAllBtn);
     }
-    
+     
     function delete_select_nodes() {
         var ids = [];
         var visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]');
@@ -500,7 +504,7 @@ table td, .table .td {
                 }
             }
         );
-    }
+}
 
     function get_now_use_node() {
         XHR.get('<%=api.url("get_now_use_node")%>', null,
@@ -671,7 +675,7 @@ table td, .table .td {
             };
             for (let i = 0; i < 20; i++) { thread(); }
         }
-    }
+}
 
     function arraysEqual(a, b) {
         if (a === b) return true;
@@ -685,8 +689,7 @@ table td, .table .td {
 
     function initSortableForTable(table) {
         if (!table) return null;
-        let group = table.id.replace("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
-        if (!table) return;
+        let group = table.id.replace("cbi-<%=appname%>-nodes-", "").replace("cbi-passwall2-nodes-", "").replace("-table", "")
         var root = table.querySelector('tbody') || table;
         if (root._sortable_initialized) return root._sortable_instance;
         root._sortable_initialized = true;
@@ -751,7 +754,7 @@ table td, .table .td {
         }[c]));
     }
 
-    // 🛡️ پچ اختصاصی: بدنه محرک جاوااسکریپت برای مدیریت و اتوماسیون تست همگانی لینک‌ها
+    -- 🛡️ پچ اختصاصی: موتور بهینه‌شده بازآزمایی و پینگ همگانی کانفیگ‌ها بدون ایجاد لَگ یا کراش روتر
     function runNativeAllUrlTests() {
         let visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]') || document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"]');
         if (!visibleContainer) return;
@@ -827,15 +830,16 @@ table td, .table .td {
             </tr>
             {{node-tr}}
         </table>
-        <div class="cbi-section-create cbi-tblsection-create core-patch-container">
+        <div class="cbi-section-create cbi-tblsection-create">
             <input class="cbi-button cbi-button-add" type="button" value="<%:Add%>" onclick="to_add_node()">
-            <input class="cbi-button cbi-button-apply" style="display: none" type="button" id="save_order_btn_{{{group}}}" value="<%:Save Order%>" onclick="save_current_page_order('{{group}}')">
+            <input class="cbi-button cbi-button-apply" style="display: none" type="button" id="save_order_btn_{{group}}" value="<%:Save Order%>" onclick="save_current_page_order('{{group}}')">
         </div>
     </fieldset>
 </script>
 
 <script type="text/template" id="node-tr-template">
     <tr class="tr cbi-section-table-row" id="cbi-<%=appname%>-{{id}}">
+        -- 🛡️ پچ اختصاصی: کدهای دوقلو تگ‌های مخفی برای مهار رفتارهای متناقض ریلز ۳ تا ۶ در خواندن اطلاعات نود
         <input class="hidden" id="cbid.<%=appname%>.{{id}}.remarks" value="{{remarks_val}}"/>
         <input class="hidden" id="cbid.passwall2.{{id}}.remarks" value="{{remarks_val}}"/>
         <input class="hidden" id="cbid.<%=appname%>.{{id}}.address" value="{{address_val}}"/>
@@ -875,31 +879,50 @@ table td, .table .td {
         if (type == "sing-box" || type == "Xray") {
             let protocol = o["protocol"]
             let p = "";
-            if (protocol == "_balancing") p = "<%:Balancing%>";
-            else if (protocol == "_urltest") p = "URLTest";
-            else if (protocol == "_shunt") p = "<%:Shunt%>";
-            else if (protocol == "_iface") p = "<%:Interface%>";
-            else if (protocol == "vmess") p = "VMess";
-            else if (protocol == "vless") p = "VLESS";
-            else if (protocol == "shadowsocks") p = "SS";
-            else if (protocol == "shadowsocksr") p = "SSR";
-            else if (protocol == "wireguard") p = "WG";
-            else if (protocol == "hysteria") p = "HY";
-            else if (protocol == "hysteria2") p = "HY2";
-            else if (protocol == "anytls") p = "AnyTLS";
-            else if (protocol == "ssh") p = "SSH";
-            else {
+            if (protocol == "_balancing") {
+                p = "<%:Balancing%>";
+            } else if (protocol == "_urltest") {
+                p = "URLTest";
+            } else if (protocol == "_shunt") {
+                p = "<%:Shunt%>";
+            } else if (protocol == "_iface") {
+                p = "<%:Interface%>";
+            } else if (protocol == "vmess") {
+                p = "VMess";
+            } else if (protocol == "vless") {
+                p = "VLESS";
+            } else if (protocol == "shadowsocks") {
+                p = "SS";
+            } else if (protocol == "shadowsocksr") {
+                p = "SSR";
+            } else if (protocol == "wireguard") {
+                p = "WG";
+            } else if (protocol == "hysteria") {
+                p = "HY";
+            } else if (protocol == "hysteria2") {
+                p = "HY2";
+            } else if (protocol == "anytls") {
+                p = "AnyTLS";
+            } else if (protocol == "ssh") {
+                p = "SSH";
+            } else {
                 if (protocol && protocol.length > 1) {
                     p = protocol.charAt(0).toUpperCase() + protocol.slice(1);
                 }
             }
-            if (type == "sing-box") type = "Sing-Box";
+            if (type == "sing-box") {
+                type = "Sing-Box";
+            }
             type += " " + p;
         }
         let address = o["address"] || "";
         let port = o["port"] || "";
-        let port_s = port !== "" ? port : (o["hysteria_hop"] || o["hysteria2_hop"]);
-        
+        let port_s = "";
+        if (port != "") {
+            port_s = port;
+        } else {
+            port_s = o["hysteria_hop"] || o["hysteria2_hop"];
+        }
         if ((o.type === "Hysteria2" || o.protocol === 'hysteria2') && o.hysteria2_realms) {
             str += type + " Realm：" + remarks;
         } else {
@@ -911,11 +934,16 @@ table td, .table .td {
     function loadNodeList() {
         XHR.get('<%=api.url("get_node")%>', null, function(x, result) {
             var node_list = result
+
             var group_nodes = {}
             for (let i = 0; i < node_list.length; i++) {
                 let _node = node_list[i]
-                if (!_node.group || _node.group === "") _node.group = "default"
-                if (!group_nodes[_node.group]) group_nodes[_node.group] = []
+                if (!_node.group || _node.group === "") {
+                    _node.group = "default"
+                }
+                if (!group_nodes[_node.group]) {
+                    group_nodes[_node.group] = []
+                }
                 group_nodes[_node.group].push(_node)
             }
 
@@ -925,12 +953,13 @@ table td, .table .td {
             var nodes_table_template = document.getElementById("nodes-table-template");
             var node_template = document.getElementById("node-tr-template");
             var default_group = null
-            
             for (let group in group_nodes) {
-                if (default_group == null) default_group = group
+                if (default_group == null)
+                    default_group = group
 
                 var table_html = "";
                 if (true) {
+                    //Node List
                     var new_nodes_table_dom = nodes_table_template.cloneNode(true);
                     var _html = new_nodes_table_dom.innerHTML;
                     _html = _html.split("{{group}}").join(group);
@@ -940,7 +969,6 @@ table td, .table .td {
                         var newDom = node_template.cloneNode(true);
                         newDom.classList.add("cbi-rowstyle-" + (i % 2 + 1));
                         var innerHTML = newDom.innerHTML;
-                        
                         if (auto_detection_time != "icmp" && o["address"]) {
                             innerHTML = innerHTML.split("{{ping}}").join('<span class="ping"><a href="javascript:void(0)" onclick="javascript:ping_node(\'{{id}}\', this, \'icmp\')"><%:Test%></a></span>');
                         } else {
@@ -980,7 +1008,9 @@ table td, .table .td {
                 }
 
                 var group_name = group
-                if (group === "default") group_name = "<%:default%>"
+                if (group === "default") {
+                    group_name = "<%:default%>"
+                }
 
                 tab_ul_li_html +=
                     '<li group_name="' + group + '" id="tab.' + appname + '.nodes.' + group + '" class="cbi-tab">' +
@@ -1002,8 +1032,10 @@ table td, .table .td {
                 cbi_t_add(appname + ".nodes", group)
             }
 
-            if (default_group) cbi_t_switch(appname + ".nodes", default_group)
-            
+            if (default_group) {
+                cbi_t_switch(appname + ".nodes", default_group)
+            }
+             
             origin_group_node_order = {};
             for (let group in group_nodes) {
                 origin_group_node_order[group] = get_node_order(group);
@@ -1011,6 +1043,7 @@ table td, .table .td {
 
             initAllSortable(group_nodes);
 
+            //clear expire data
             if (localStorage && localStorage.length > 0) {
                 const now = Date.now();
                 for (let i = 0; i < localStorage.length; i++) {
@@ -1026,7 +1059,7 @@ table td, .table .td {
             }
 
             get_now_use_node();
-            
+             
             setTimeout(function () {
                 if (typeof pingAllNodes === "function") pingAllNodes();
             }, 500);
@@ -1035,6 +1068,7 @@ table td, .table .td {
 
     loadNodeList();
 
+    //Node list option saving logic
     document.addEventListener("DOMContentLoaded", function () {
         function waitForElement(selector, callback) {
             const el = document.querySelector(selector);
@@ -1076,6 +1110,7 @@ table td, .table .td {
             });
         });
         
+        -- 🛡️ پچ اختصاصی: مانیتور هوشمند فرانت پنل لوسی برای تزریق زنده دکمه تست همگانی بدون تداخل با لایوت روتر
         var actionWatcher = new MutationObserver(function() {
             var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]') || document.querySelector('input[onclick*="delete_select_nodes"]');
             if(deleteBtn && !document.getElementById('btn_test_all_urls')) {
