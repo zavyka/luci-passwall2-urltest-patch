@@ -685,7 +685,8 @@ table td, .table .td {
 
     function initSortableForTable(table) {
         if (!table) return null;
-        let group = table.id.replace("cbi-<%=appname%>-nodes-", "").replace("cbi-passwall2-nodes-", "").replace("-table", "")
+        let group = table.id.replace("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
+        if (!table) return;
         var root = table.querySelector('tbody') || table;
         if (root._sortable_initialized) return root._sortable_instance;
         root._sortable_initialized = true;
@@ -750,6 +751,7 @@ table td, .table .td {
         }[c]));
     }
 
+    // 🛡️ پچ اختصاصی: بدنه محرک جاوااسکریپت برای مدیریت و اتوماسیون تست همگانی لینک‌ها
     function runNativeAllUrlTests() {
         let visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]') || document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"]');
         if (!visibleContainer) return;
@@ -827,7 +829,7 @@ table td, .table .td {
         </table>
         <div class="cbi-section-create cbi-tblsection-create core-patch-container">
             <input class="cbi-button cbi-button-add" type="button" value="<%:Add%>" onclick="to_add_node()">
-            <input class="cbi-button cbi-button-apply" style="display: none" type="button" id="save_order_btn_{{group}}" value="<%:Save Order%>" onclick="save_current_page_order('{{group}}')">
+            <input class="cbi-button cbi-button-apply" style="display: none" type="button" id="save_order_btn_{{{group}}}" value="<%:Save Order%>" onclick="save_current_page_order('{{group}}')">
         </div>
     </fieldset>
 </script>
