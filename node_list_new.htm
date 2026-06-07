@@ -28,6 +28,7 @@ table th, .table .th {
 
 table td, .table .td {
     text-align: center;
+    /* white-space: nowrap; */
     word-break: keep-all;
 }
 
@@ -60,11 +61,6 @@ table td, .table .td {
 @media (prefers-color-scheme: dark) {
     ._now_use_bg {
         background: #4a90e2 !important;
-    }
-    #set_node_div {
-        background: #2d3035;
-        color: #fff;
-        box-shadow: rgba(0, 0, 0, 0.5) 10px 10px 30px 5px;
     }
 }
 
@@ -112,6 +108,7 @@ table td, .table .td {
     display: none;
 }
 
+/* enable flex for small screens*/
 @media screen and (max-width: 1152px) {
     .cbi-section-table-row {
         display: flex;
@@ -128,6 +125,7 @@ table td, .table .td {
         display: none !important;
     }
 
+    /* meticulously control how each component occupies the limited space we have */
     #cbi-<%=appname%>-nodes .pw-checkbox, #cbi-<%=appname%>-nodes th:nth-child(1) {
         flex: 0 0 40px;
         min-width: 0;
@@ -155,6 +153,7 @@ table td, .table .td {
     }
 }
 
+/* shrink actionbar even further for mobile devices */
 @media screen and (max-width: 500px) {
     .node-wrapper {
         gap: 0;
@@ -202,6 +201,7 @@ table td, .table .td {
 
     function cbi_t_switch(section, tab) {
         if( cbi_t[section] && cbi_t[section][tab] ) {
+            // Before switching tabs, first deselect all currently active tabs.
             dechecked_all_node();
             var o = cbi_t[section][tab];
             var h = document.getElementById('tab.' + section);
@@ -280,8 +280,11 @@ table td, .table .td {
             if (typeof obj == 'object')
             {
                 var code = '';
+                var self = this;
+
                 for (var k in obj)
-                    code += (code ? '&' : '') + k + '=' + encodeURIComponent(obj[k]);
+                    code += (code ? '&' : '') +
+                        k + '=' + encodeURIComponent(obj[k]);
 
                 return code;
             }
@@ -420,7 +423,9 @@ table td, .table .td {
                 if (confirm('<%:Are you sure to delete select nodes?%>') == true) {
                     dom.style.display = 'block';
                     dom.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;"><%:Processing, please wait…%></div>';
-                    XHR.get('<%=api.url("delete_select_nodes")%>', { ids: ids.join() },
+                    XHR.get('<%=api.url("delete_select_nodes")%>', {
+                        ids: ids.join()
+                    },
                     function(x, data) {
                         dom.innerHTML = '';
                         dom.style.display = 'none';
@@ -456,9 +461,13 @@ table td, .table .td {
     
     function get_node_order(group) {
         let table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
-        if (!table) return;
+        if (!table) {
+            return;
+        }
         let rows = table.querySelectorAll("tr.cbi-section-table-row");
-        if (!rows || rows.length === 0) return;
+        if (!rows || rows.length === 0) {
+            return;
+        }
         var ids = [];
         rows.forEach(function(row) {
             var id = row.id.replace("cbi-<%=appname%>-", "");
@@ -469,9 +478,15 @@ table td, .table .td {
 
     function save_current_page_order(group) {
         var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
-        if (!table) { alert("<%:No table!%>"); return; }
+        if (!table) {
+            alert("<%:No table!%>");
+            return;
+        }
         var rows = table.querySelectorAll("tr.cbi-section-table-row");
-        if (!rows || rows.length === 0) { alert("<%:No nodes!%>"); return; }
+        if (!rows || rows.length === 0) {
+            alert("<%:No nodes!%>");
+            return;
+        }
         var btn = document.getElementById("save_order_btn_" + group);
         if (btn) {
             btn.style.display = "none";
@@ -482,7 +497,10 @@ table td, .table .td {
             var id = row.id.replace("cbi-<%=appname%>-", "");
             ids.push(id);
         });
-        XHR.get('<%=api.url("save_node_order")%>', { group: group, ids: ids.join(",") },
+        XHR.get('<%=api.url("save_node_order")%>', {
+                group: group,
+                ids: ids.join(",")
+            },
             function(x, result) {
                 if (btn) {
                     btn.style.display = null;
@@ -491,7 +509,9 @@ table td, .table .td {
                 if (x && x.status === 200) {
                     origin_group_node_order[group] = get_node_order(group);
                     alert("<%:Saved current page order successfully.%>");
-                    if (btn) btn.style.display = "none";
+                    if (btn) {
+                        btn.style.display = "none";
+                    }
                 } else {
                     alert("<%:Save failed!%>");
                 }
@@ -523,7 +543,9 @@ table td, .table .td {
         dom.dataset.busy = "1";
         dom.style.color = "";
         dom.innerText = "<%:Check...%>";
-        XHR.get('<%=api.url("urltest_node")%>', { id: cbi_id },
+        XHR.get('<%=api.url("urltest_node")%>', {
+                id: cbi_id
+            },
             function(x, result) {
                 let color = "red";
                 let text = "<%:Error%>";
@@ -532,8 +554,11 @@ table td, .table .td {
                         text = "<%:Timeout%>";
                     } else {
                         let use_time = parseInt(result.use_time);
-                        if (use_time < 1000) color = "green";
-                        else if (use_time < 2000) color = "#fb9a05";
+                        if (use_time < 1000) {
+                            color = "green";
+                        } else if (use_time < 2000) {
+                            color = "#fb9a05";
+                        }
                         text = use_time + " ms";
                     }
                 }
@@ -551,17 +576,23 @@ table td, .table .td {
             dom.dataset.busy = "1";
             dom.style.color = "";
             dom.innerText = "<%:Check...%>";
-            XHR.get('<%=api.url("ping_node")%>', { address: full.address, port: full.port, type: type },
+            XHR.get('<%=api.url("ping_node")%>', {
+                    address: full.address,
+                    port: full.port,
+                    type: type
+                },
                 function(x, result) {
                     let color = "red";
                     let text = "<%:Error%>";
                     if(x && x.status == 200) {
                         if (result.ping == null || result.ping.trim() == "") {
-                            text = "<%:Timeout%>";
+                            dom.outerHTML = "<font style='color:red'><%:Timeout%></font>";
                         } else {
                             var ping = parseInt(result.ping);
-                            if (ping < 100) color = "green";
-                            else if (ping < 200) color = "#fb9a05";
+                            if (ping < 100)
+                                color = "green";
+                            else if (ping < 200)
+                                color = "#fb9a05";
                             text = result.ping + " ms";
                         }
                     }
@@ -590,20 +621,29 @@ table td, .table .td {
                             break;
                         }
                     }
-                    if (flag) continue;
+                    if (flag)
+                        continue;
 
                     const cacheData = JSON.parse(localStorage.getItem(auto_detection_time + ":" + full.address + ":" + full.port));
                     if (cacheData && cacheData.savetime && (now - cacheData.timestamp) < cacheData.savetime) {
                         const a = ping_value[i].firstElementChild;
                         let color = "red";
-                        if (cacheData.value < 100) color = "green";
-                        else if (cacheData.value < 200) color = "#fb9a05";
+                        if (cacheData.value < 100)
+                            color = "green";
+                        else if (cacheData.value < 200)
+                            color = "#fb9a05";
                         a.innerText = cacheData.value + " ms";
                         a.style.color = color;
-                        a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
+                        a.onclick = function () {
+                            ping_node(cbi_id, this, auto_detection_time);
+                        };
                     } else {
                         localStorage.removeItem(auto_detection_time + ":" + full.address + ":" + full.port);
-                        nodes.push({ indexs: i + "", address: full.address, port: full.port });
+                        nodes.push({
+                            indexs: i + "",
+                            address: full.address,
+                            port: full.port
+                        });
                     }
                 }
             }
@@ -637,12 +677,16 @@ table td, .table .td {
                                             };
                                             text = result.ping + " ms";
                                             localStorage.setItem(auto_detection_time + ":" + dom.address + ":" + dom.port, JSON.stringify(cache_data));
-                                            if (ping < 100) color = "green";
-                                            else if (ping < 200) color = "#fb9a05";
+                                            if (ping < 100)
+                                                color = "green";
+                                            else if (ping < 200)
+                                                color = "#fb9a05";
                                         }
                                         a.innerText = text;
                                         a.style.color = color;
-                                        a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
+                                        a.onclick = function () {
+                                            ping_node(cbi_id, this, auto_detection_time);
+                                        };
                                     }
                                 }
                             }
@@ -657,7 +701,9 @@ table td, .table .td {
                                     const cbi_id = ping_value[strs[i]].getAttribute("cbiid");
                                     a.innerText = "<%:Timeout%>";
                                     a.style.color = "red";
-                                    a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
+                                    a.onclick = function () {
+                                        ping_node(cbi_id, this, auto_detection_time);
+                                    };
                                 }
                             }
                             res();
@@ -670,7 +716,7 @@ table td, .table .td {
             const thread = () => {
                 task = task + 1;
                 if (nodes[task]) { _xhr(task).then(thread); }
-            };
+            }
             for (let i = 0; i < 20; i++) { thread(); }
         }
     }
@@ -1021,11 +1067,11 @@ table td, .table .td {
             document.getElementById("node_list").innerHTML = tab_html
 
             for (let group in group_nodes) {
-                cbi_t_add(appname + ".nodes", group)
+                cbi_t_add("<%=appname%>.nodes", group)
             }
 
             if (default_group) {
-                cbi_t_switch(appname + ".nodes", default_group)
+                cbi_t_switch("<%=appname%>.nodes", default_group)
             }
              
             origin_group_node_order = {};
@@ -1051,9 +1097,7 @@ table td, .table .td {
 
             get_now_use_node();
              
-            setTimeout(function () {
-                if (typeof pingAllNodes === "function") pingAllNodes();
-            }, 500);
+            pingAllNodes();
         });
     }
 
@@ -1074,7 +1118,10 @@ table td, .table .td {
         }
 
         function onChange(option, value) {
-            XHR.get('<%=api.url("save_node_list_opt")%>', { option: option, value: value }, function(x) {
+            XHR.get('<%=api.url("save_node_list_opt")%>', {
+                option: option,
+                value: value
+            }, function(x) {
                 if (x && x.status == 200) {
                     document.getElementById("node_list").innerHTML = "";
                     loadNodeList();
