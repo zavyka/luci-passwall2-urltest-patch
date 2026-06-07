@@ -11,7 +11,8 @@ if node then
     local node_protocol = api.uci_get_type_id(node, "protocol")
     if node_type == "Xray" and node_protocol == "_shunt" then
         default_node_type = node_protocol
-        uci:foreach(appname, "shunt_rules", function(e)
+        -- 🛡️ Safeguard: Enforced pristine uci parsing string to secure Late-2025 Hybrid layouts
+        uci:foreach("passwall2", "shunt_rules", function(e)
             if e[".name"] and e.remarks then
                 shunt_rule_list[#shunt_rule_list + 1] = e
             end
@@ -19,7 +20,7 @@ if node then
     end
 end
 -%>
-<script src="<%=resource%>/view/<%=api.appname%>/Sortable.min.js"></script>
+<script src="<%=resource%>/view/<%=appname%>/Sortable.min.js"></script>
 
 <style>
 table th, .table .th {
@@ -418,9 +419,14 @@ table td, .table .td {
                 }
             }
             if (ids.length > 0) {
+                const dom = document.getElementById('modal-mask');
                 if (confirm('<%:Are you sure to delete select nodes?%>') == true) {
+                    dom.style.display = 'block';
+                    dom.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;"><%:Processing, please wait…%></div>';
                     XHR.get('<%=api.url("delete_select_nodes")%>', { ids: ids.join() },
                     function(x, data) {
+                        dom.innerHTML = '';
+                        dom.style.display = 'none';
                         if (x && x.status == 200) {
                             ajaxAbortAll();
                             window.location.href = '<%=api.url("node_list")%>';
@@ -444,28 +450,28 @@ table td, .table .td {
     }
     
     function get_address_full(id) {
-        var address = (document.getElementById("cbid.<%=appname%>." + id + ".address") || {}).value || "";
-        var port = (document.getElementById("cbid.<%=appname%>." + id + ".port") || {}).value || "";
+        var address = (document.getElementById("cbid.<%="passwall2"%>." + id + ".address") || document.getElementById("cbid." + appname + "." + id + ".address") || {}).value || "";
+        var port = (document.getElementById("cbid.<%="passwall2"%>." + id + ".port") || document.getElementById("cbid." + appname + "." + id + ".port") || {}).value || "";
         var reg = /[\u4E00-\u9FFF]+/;
         address = !reg.test(address) ? address : "";
         return { address: address, port: port };
     }
     
     function get_node_order(group) {
-        let table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
+        let table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
         if (!table) return;
         let rows = table.querySelectorAll("tr.cbi-section-table-row");
         if (!rows || rows.length === 0) return;
         var ids = [];
         rows.forEach(function(row) {
-            var id = row.id.replace("cbi-<%=appname%>-", "");
+            var id = row.id.replace("cbi-<%=appname%>-", "").replace("cbi-passwall2-", "");
             ids.push(id);
         });
         return ids;
     }
 
     function save_current_page_order(group) {
-        var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
+        var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
         if (!table) { alert("<%:No table!%>"); return; }
         var rows = table.querySelectorAll("tr.cbi-section-table-row");
         if (!rows || rows.length === 0) { alert("<%:No nodes!%>"); return; }
@@ -476,7 +482,7 @@ table td, .table .td {
         }
         var ids = [];
         rows.forEach(function(row) {
-            var id = row.id.replace("cbi-<%=appname%>-", "");
+            var id = row.id.replace("cbi-<%=appname%>-", "").replace("cbi-passwall2-", "");
             ids.push(id);
         });
         XHR.get('<%=api.url("save_node_order")%>', { group: group, ids: ids.join(",") },
@@ -501,7 +507,7 @@ table td, .table .td {
             function(x, result) {
                 var id = result["global"];
                 if (id) {
-                    var dom = document.getElementById("cbi-<%=appname%>-" + id);
+                    var dom = document.getElementById("cbi-<%=appname%>-" + id) || document.getElementById("cbi-passwall2-" + id);
                     if (dom) {
                         dom.title = "<%:Using...%>";
                         dom.classList.add("_now_use_bg");
@@ -591,13 +597,12 @@ table td, .table .td {
 
                     const cacheData = JSON.parse(localStorage.getItem(auto_detection_time + ":" + full.address + ":" + full.port));
                     if (cacheData && cacheData.savetime && (now - cacheData.timestamp) < cacheData.savetime) {
-                        const a = ping_value[i].firstElementChild;
+                        const a = ping_value[i].firstElementChild || ping_value[i];
                         let color = "red";
                         if (cacheData.value < 100) color = "green";
                         else if (cacheData.value < 200) color = "#fb9a05";
                         a.innerText = cacheData.value + " ms";
                         a.style.color = color;
-                        a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
                     } else {
                         localStorage.removeItem(auto_detection_time + ":" + full.address + ":" + full.port);
                         nodes.push({ indexs: i + "", address: full.address, port: full.port });
@@ -620,8 +625,7 @@ table td, .table .td {
                                 let strs = dom.indexs.split(",");
                                 for (let i = 0; i < strs.length; i++) {
                                     if (ping_value[strs[i]]) {
-                                        const a = ping_value[strs[i]].firstElementChild;
-                                        const cbi_id = ping_value[strs[i]].getAttribute("cbiid");
+                                        const a = ping_value[strs[i]].firstElementChild || ping_value[strs[i]];
                                         let color = "red";
                                         let text = "<%:Timeout%>";
                                         if (result.ping !== null && result.ping.trim() !== "") {
@@ -639,7 +643,6 @@ table td, .table .td {
                                         }
                                         a.innerText = text;
                                         a.style.color = color;
-                                        a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
                                     }
                                 }
                             }
@@ -650,11 +653,9 @@ table td, .table .td {
                             let strs = dom.indexs.split(",");
                             for (let i = 0; i < strs.length; i++) {
                                 if (ping_value[strs[i]]) {
-                                    const a = ping_value[strs[i]].firstElementChild;
-                                    const cbi_id = ping_value[strs[i]].getAttribute("cbiid");
+                                    const a = ping_value[strs[i]].firstElementChild || ping_value[strs[i]];
                                     a.innerText = "<%:Timeout%>";
                                     a.style.color = "red";
-                                    a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
                                 }
                             }
                             res();
@@ -684,7 +685,7 @@ table td, .table .td {
 
     function initSortableForTable(table) {
         if (!table) return null;
-        let group = table.id.replace("cbi-<%=appname%>-nodes-", "").replace("-table", "")
+        let group = table.id.replace("cbi-<%=appname%>-nodes-", "").replace("cbi-passwall2-nodes-", "").replace("-table", "")
         var root = table.querySelector('tbody') || table;
         if (root._sortable_initialized) return root._sortable_instance;
         root._sortable_initialized = true;
@@ -728,7 +729,7 @@ table td, .table .td {
                 if (typeof Sortable !== 'undefined') {
                     clearInterval(t);
                     for (var group in group_nodes) {
-                        var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
+                        var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
                         initSortableForTable(table);
                     }
                 } else if (retries >= maxRetries) {
@@ -737,7 +738,7 @@ table td, .table .td {
             }, 200);
         } else {
             for (var group in group_nodes) {
-                var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
+                var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
                 initSortableForTable(table);
             }
         }
@@ -750,10 +751,10 @@ table td, .table .td {
     }
 
     function runNativeAllUrlTests() {
-        let visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]');
+        let visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]') || document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"]');
         if (!visibleContainer) return;
 
-        let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a');
+        let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a, td.pw-urltest button, td [onclick*="urltest_node"]');
         if (urlTestTargets.length === 0) {
             alert('No URL Test engines available in the current group.');
             return;
@@ -776,7 +777,7 @@ table td, .table .td {
                         setTimeout(() => {
                             if (confirm('Global URL Testing Finished! Clean up Dead/Timed-out proxies right now?')) {
                                 visibleContainer.querySelectorAll('tr.cbi-section-table-row').forEach(row => {
-                                    let urlTestCell = row.querySelector('td.pw-urltest');
+                                    let urlTestCell = row.querySelector('td.pw-urltest') || row.querySelectorAll('td')[4];
                                     if (urlTestCell) {
                                         let text = urlTestCell.textContent || urlTestCell.innerText;
                                         let rowText = row.textContent || row.innerText || "";
@@ -824,7 +825,7 @@ table td, .table .td {
             </tr>
             {{node-tr}}
         </table>
-        <div class="cbi-section-create cbi-tblsection-create">
+        <div class="cbi-section-create cbi-tblsection-create core-patch-container">
             <input class="cbi-button cbi-button-add" type="button" value="<%:Add%>" onclick="to_add_node()">
             <input class="cbi-button cbi-button-apply" style="display: none" type="button" id="save_order_btn_{{group}}" value="<%:Save Order%>" onclick="save_current_page_order('{{group}}')">
         </div>
@@ -834,8 +835,11 @@ table td, .table .td {
 <script type="text/template" id="node-tr-template">
     <tr class="tr cbi-section-table-row" id="cbi-<%=appname%>-{{id}}">
         <input class="hidden" id="cbid.<%=appname%>.{{id}}.remarks" value="{{remarks_val}}"/>
+        <input class="hidden" id="cbid.passwall2.{{id}}.remarks" value="{{remarks_val}}"/>
         <input class="hidden" id="cbid.<%=appname%>.{{id}}.address" value="{{address_val}}"/>
+        <input class="hidden" id="cbid.passwall2.{{id}}.address" value="{{address_val}}"/>
         <input class="hidden" id="cbid.<%=appname%>.{{id}}.port" value="{{port_val}}"/>
+        <input class="hidden" id="cbid.passwall2.{{id}}.port" value="{{port_val}}"/>
         <td class="td cbi-value-field pw-checkbox">
             <input class="cbi-input-checkbox nodes_select" type="checkbox" cbid="{{id}}" onclick="update_select_state()"/>
         </td>
@@ -865,6 +869,7 @@ table td, .table .td {
         let remarks = o["remarks"] || "";
         let type = o["type"] || "";
         str += "<input type='hidden' id='cbid.<%=appname%>." + o[".name"] + ".type' value='" + type + "'/>";
+        str += "<input type='hidden' id='cbid.passwall2." + o[".name"] + ".type' value='" + type + "'/>";
         if (type == "sing-box" || type == "Xray") {
             let protocol = o["protocol"]
             let p = "";
@@ -1070,35 +1075,27 @@ table td, .table .td {
         });
         
         var actionWatcher = new MutationObserver(function() {
-            // 🛡️ Universal Safe Interceptor: Multipath selector targeting legacy, modern & hybrid builds concurrently
-            var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]') 
-                            || document.querySelector('input[onclick*="delete_select_nodes"]')
-                            || document.querySelector('.cbi-button-remove')
-                            || document.querySelector('input[value*="Delete"]');
-            
-            // 🛡️ Critical Shield: Enforce absolute fallback isolation to fully prevent hybrid layout crashes
-            if(!deleteBtn || document.getElementById('btn_test_all_urls')) {
-                return;
+            var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]') || document.querySelector('input[onclick*="delete_select_nodes"]');
+            if(deleteBtn && !document.getElementById('btn_test_all_urls')) {
+                var testAllBtn = document.createElement('input');
+                testAllBtn.type = 'button';
+                testAllBtn.id = 'btn_test_all_urls';
+                testAllBtn.className = 'cbi-button cbi-button-reset';
+                testAllBtn.value = 'Test All URLs';
+                testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
+                
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    testAllBtn.style.backgroundColor = '#454a54';
+                    testAllBtn.style.color = '#ffffff';
+                    testAllBtn.style.borderColor = '#5a6270';
+                } else {
+                    testAllBtn.style.backgroundColor = '#f4f5f7';
+                    testAllBtn.style.color = '#333333'; 
+                    testAllBtn.style.borderColor = '#d1d5db';
+                }
+                testAllBtn.onclick = runNativeAllUrlTests;
+                deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
             }
-
-            var testAllBtn = document.createElement('input');
-            testAllBtn.type = 'button';
-            testAllBtn.id = 'btn_test_all_urls';
-            testAllBtn.className = 'cbi-button cbi-button-reset';
-            testAllBtn.value = 'Test All URLs';
-            testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
-            
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                testAllBtn.style.backgroundColor = '#454a54';
-                testAllBtn.style.color = '#ffffff';
-                testAllBtn.style.borderColor = '#5a6270';
-            } else {
-                testAllBtn.style.backgroundColor = '#f4f5f7';
-                testAllBtn.style.color = '#333333'; 
-                testAllBtn.style.borderColor = '#d1d5db';
-            }
-            testAllBtn.onclick = runNativeAllUrlTests;
-            deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
         });
         actionWatcher.observe(document.body, { childList: true, subtree: true });
     });
