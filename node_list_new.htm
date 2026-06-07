@@ -62,6 +62,11 @@ table td, .table .td {
     ._now_use_bg {
         background: #4a90e2 !important;
     }
+    #set_node_div {
+        background: #2d3035;
+        color: #fff;
+        box-shadow: rgba(0, 0, 0, 0.5) 10px 10px 30px 5px;
+    }
 }
 
 .td.cbi-section-actions {
@@ -797,65 +802,6 @@ table td, .table .td {
             "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
         }[c]));
     }
-
-    function runNativeAllUrlTests() {
-        let visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]');
-        if (!visibleContainer) return;
-
-        let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a');
-        if (urlTestTargets.length === 0) {
-            alert('No URL Test engines available in the current group.');
-            return;
-        }
-
-        let totalTests = urlTestTargets.length;
-        let completedTests = 0;
-        let delay = 0;
-
-        var originalXHRGet = XHR.get;
-        XHR.get = function(url, args, callback) {
-            if (url.indexOf('urltest_node') !== -1) {
-                var originalCallback = callback;
-                callback = function(xhr, data) {
-                    if (originalCallback) originalCallback(xhr, data);
-                    completedTests++;
-
-                    if (completedTests === totalTests) {
-                        XHR.get = originalXHRGet;
-                        setTimeout(() => {
-                            if (confirm('Global URL Testing Finished! Clean up Dead/Timed-out proxies right now?')) {
-                                visibleContainer.querySelectorAll('tr.cbi-section-table-row').forEach(row => {
-                                    let urlTestCell = row.querySelector('td.pw-urltest');
-                                    if (urlTestCell) {
-                                        let text = urlTestCell.textContent || urlTestCell.innerText;
-                                        let rowText = row.textContent || row.innerText || "";
-                                        
-                                        if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
-                                            return;
-                                        }
-                                        
-                                        if (text.includes('Timeout') || text.includes('Error')) {
-                                            let cb = row.querySelector('.nodes_select');
-                                            if (cb) cb.checked = true;
-                                        }
-                                    }
-                                });
-                                update_select_state();
-                            }
-                        }, 500);
-                    }
-                };
-            }
-            return originalXHRGet.apply(this, arguments);
-        };
-
-        urlTestTargets.forEach(target => {
-            setTimeout(() => {
-                target.click();
-            }, delay);
-            delay += 100;
-        });
-    }
 </script>
 
 <script type="text/template" id="nodes-table-template">
@@ -1118,10 +1064,7 @@ table td, .table .td {
         }
 
         function onChange(option, value) {
-            XHR.get('<%=api.url("save_node_list_opt")%>', {
-                option: option,
-                value: value
-            }, function(x) {
+            XHR.get('<%=api.url("save_node_list_opt")%>', { option: option, value: value }, function(x) {
                 if (x && x.status == 200) {
                     document.getElementById("node_list").innerHTML = "";
                     loadNodeList();
@@ -1173,6 +1116,68 @@ table td, .table .td {
         actionWatcher.observe(document.body, { childList: true, subtree: true });
     });
     //]]>
+</script>
+
+<!-- 🛡️ Isolated Sub-Layer Patch Block (Fully isolated to safeguard core background loaders) -->
+<script type="text/javascript">
+    function runNativeAllUrlTests() {
+        let visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]');
+        if (!visibleContainer) return;
+
+        let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a');
+        if (urlTestTargets.length === 0) {
+            alert('No URL Test engines available in the current group.');
+            return;
+        }
+
+        let totalTests = urlTestTargets.length;
+        let completedTests = 0;
+        let delay = 0;
+
+        var originalXHRGet = XHR.get;
+        XHR.get = function(url, args, callback) {
+            if (url.indexOf('urltest_node') !== -1) {
+                var originalCallback = callback;
+                callback = function(xhr, data) {
+                    if (originalCallback) originalCallback(xhr, data);
+                    completedTests++;
+
+                    if (completedTests === totalTests) {
+                        XHR.get = originalXHRGet;
+                        setTimeout(() => {
+                            if (confirm('Global URL Testing Finished! Clean up Dead/Timed-out proxies right now?')) {
+                                visibleContainer.querySelectorAll('tr.cbi-section-table-row').forEach(row => {
+                                    let urlTestCell = row.querySelector('td.pw-urltest');
+                                    if (urlTestCell) {
+                                        let text = urlTestCell.textContent || urlTestCell.innerText;
+                                        let rowText = row.textContent || row.innerText || "";
+                                        
+                                        if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
+                                            return;
+                                        }
+                                        
+                                        if (text.includes('Timeout') || text.includes('Error')) {
+                                            let cb = row.querySelector('.nodes_select');
+                                            if (cb) cb.checked = true;
+                                        }
+                                    }
+                                });
+                                update_select_state();
+                            }
+                        }, 500);
+                    }
+                };
+            }
+            return originalXHRGet.apply(this, arguments);
+        };
+
+        urlTestTargets.forEach(target => {
+            setTimeout(() => {
+                target.click();
+            }, delay);
+            delay += 100;
+        });
+    }
 </script>
 
 <div style="display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;">
