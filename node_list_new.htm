@@ -28,7 +28,6 @@ table th, .table .th {
 
 table td, .table .td {
     text-align: center;
-    /* white-space: nowrap; */
     word-break: keep-all;
 }
 
@@ -37,11 +36,14 @@ table td, .table .td {
     width: 30rem;
     position: fixed;
     top:50%;
-    padding-top: 30px;
-    z-index: 99;
+    left:50%;
+    transform: translate(-50%, -50%);
+    padding: 30px 20px;
+    z-index: 999;
     text-align: center;
     background: white;
     box-shadow: darkgrey 10px 10px 30px 5px;
+    border-radius: 4px;
 }
 
 ._now_use_bg {
@@ -58,6 +60,11 @@ table td, .table .td {
 @media (prefers-color-scheme: dark) {
     ._now_use_bg {
         background: #4a90e2 !important;
+    }
+    #set_node_div {
+        background: #2d3035;
+        color: #fff;
+        box-shadow: rgba(0, 0, 0, 0.5) 10px 10px 30px 5px;
     }
 }
 
@@ -105,7 +112,6 @@ table td, .table .td {
     display: none;
 }
 
-/* enable flex for small screens*/
 @media screen and (max-width: 1152px) {
     .cbi-section-table-row {
         display: flex;
@@ -122,7 +128,6 @@ table td, .table .td {
         display: none !important;
     }
 
-    /* meticulously control how each component occupies the limited space we have */
     #cbi-<%=appname%>-nodes .pw-checkbox, #cbi-<%=appname%>-nodes th:nth-child(1) {
         flex: 0 0 40px;
         min-width: 0;
@@ -150,7 +155,6 @@ table td, .table .td {
     }
 }
 
-/* shrink actionbar even further for mobile devices */
 @media screen and (max-width: 500px) {
     .node-wrapper {
         gap: 0;
@@ -273,18 +277,12 @@ table td, .table .td {
             obj = obj ? obj : { };
             obj['_'] = Math.random();
 
-            if (typeof obj == 'object')
-            {
+            if (typeof obj == 'object') {
                 var code = '';
-                var self = this;
-
                 for (var k in obj)
-                    code += (code ? '&' : '') +
-                        k + '=' + encodeURIComponent(obj[k]);
-
+                    code += (code ? '&' : '') + k + '=' + encodeURIComponent(obj[k]);
                 return code;
             }
-
             return obj;
         }
     }
@@ -420,14 +418,9 @@ table td, .table .td {
                 }
             }
             if (ids.length > 0) {
-                const dom = document.getElementById('modal-mask');
                 if (confirm('<%:Are you sure to delete select nodes?%>') == true) {
-                    dom.style.display = 'block';
-                    dom.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;"><%:Processing, please wait…%></div>';
                     XHR.get('<%=api.url("delete_select_nodes")%>', { ids: ids.join() },
                     function(x, data) {
-                        dom.innerHTML = '';
-                        dom.style.display = 'none';
                         if (x && x.status == 200) {
                             ajaxAbortAll();
                             window.location.href = '<%=api.url("node_list")%>';
@@ -451,28 +444,28 @@ table td, .table .td {
     }
     
     function get_address_full(id) {
-        var address = (document.getElementById("cbid.<%="passwall2"%>." + id + ".address") || document.getElementById("cbid." + appname + "." + id + ".address") || {}).value || "";
-        var port = (document.getElementById("cbid.<%="passwall2"%>." + id + ".port") || document.getElementById("cbid." + appname + "." + id + ".port") || {}).value || "";
+        var address = (document.getElementById("cbid.<%=appname%>." + id + ".address") || {}).value || "";
+        var port = (document.getElementById("cbid.<%=appname%>." + id + ".port") || {}).value || "";
         var reg = /[\u4E00-\u9FFF]+/;
         address = !reg.test(address) ? address : "";
         return { address: address, port: port };
     }
     
     function get_node_order(group) {
-        let table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
+        let table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
         if (!table) return;
         let rows = table.querySelectorAll("tr.cbi-section-table-row");
         if (!rows || rows.length === 0) return;
         var ids = [];
         rows.forEach(function(row) {
-            var id = row.id.replace("cbi-<%=appname%>-", "").replace("cbi-passwall2-", "");
+            var id = row.id.replace("cbi-<%=appname%>-", "");
             ids.push(id);
         });
         return ids;
     }
 
     function save_current_page_order(group) {
-        var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
+        var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
         if (!table) { alert("<%:No table!%>"); return; }
         var rows = table.querySelectorAll("tr.cbi-section-table-row");
         if (!rows || rows.length === 0) { alert("<%:No nodes!%>"); return; }
@@ -483,7 +476,7 @@ table td, .table .td {
         }
         var ids = [];
         rows.forEach(function(row) {
-            var id = row.id.replace("cbi-<%=appname%>-", "").replace("cbi-passwall2-", "");
+            var id = row.id.replace("cbi-<%=appname%>-", "");
             ids.push(id);
         });
         XHR.get('<%=api.url("save_node_order")%>', { group: group, ids: ids.join(",") },
@@ -508,7 +501,7 @@ table td, .table .td {
             function(x, result) {
                 var id = result["global"];
                 if (id) {
-                    var dom = document.getElementById("cbi-<%=appname%>-" + id) || document.getElementById("cbi-passwall2-" + id);
+                    var dom = document.getElementById("cbi-<%=appname%>-" + id);
                     if (dom) {
                         dom.title = "<%:Using...%>";
                         dom.classList.add("_now_use_bg");
@@ -598,7 +591,7 @@ table td, .table .td {
 
                     const cacheData = JSON.parse(localStorage.getItem(auto_detection_time + ":" + full.address + ":" + full.port));
                     if (cacheData && cacheData.savetime && (now - cacheData.timestamp) < cacheData.savetime) {
-                        const a = ping_value[i].firstElementChild || ping_value[i];
+                        const a = ping_value[i].firstElementChild;
                         let color = "red";
                         if (cacheData.value < 100) color = "green";
                         else if (cacheData.value < 200) color = "#fb9a05";
@@ -627,7 +620,7 @@ table td, .table .td {
                                 let strs = dom.indexs.split(",");
                                 for (let i = 0; i < strs.length; i++) {
                                     if (ping_value[strs[i]]) {
-                                        const a = ping_value[strs[i]].firstElementChild || ping_value[strs[i]];
+                                        const a = ping_value[strs[i]].firstElementChild;
                                         const cbi_id = ping_value[strs[i]].getAttribute("cbiid");
                                         let color = "red";
                                         let text = "<%:Timeout%>";
@@ -657,7 +650,8 @@ table td, .table .td {
                             let strs = dom.indexs.split(",");
                             for (let i = 0; i < strs.length; i++) {
                                 if (ping_value[strs[i]]) {
-                                    const a = ping_value[strs[i]].firstElementChild || ping_value[strs[i]];
+                                    const a = ping_value[strs[i]].firstElementChild;
+                                    const cbi_id = ping_value[strs[i]].getAttribute("cbiid");
                                     a.innerText = "<%:Timeout%>";
                                     a.style.color = "red";
                                     a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
@@ -690,7 +684,7 @@ table td, .table .td {
 
     function initSortableForTable(table) {
         if (!table) return null;
-        let group = table.id.replace("cbi-<%=appname%>-nodes-", "").replace("cbi-passwall2-nodes-", "").replace("-table", "")
+        let group = table.id.replace("cbi-<%=appname%>-nodes-", "").replace("-table", "")
         var root = table.querySelector('tbody') || table;
         if (root._sortable_initialized) return root._sortable_instance;
         root._sortable_initialized = true;
@@ -734,7 +728,7 @@ table td, .table .td {
                 if (typeof Sortable !== 'undefined') {
                     clearInterval(t);
                     for (var group in group_nodes) {
-                        var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
+                        var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
                         initSortableForTable(table);
                     }
                 } else if (retries >= maxRetries) {
@@ -743,7 +737,7 @@ table td, .table .td {
             }, 200);
         } else {
             for (var group in group_nodes) {
-                var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table") || document.getElementById("cbi-passwall2-nodes-" + group + "-table");
+                var table = document.getElementById("cbi-<%=appname%>-nodes-" + group + "-table");
                 initSortableForTable(table);
             }
         }
@@ -759,7 +753,7 @@ table td, .table .td {
         let visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]');
         if (!visibleContainer) return;
 
-        let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a, td.pw-urltest button, td [onclick*="urltest_node"]');
+        let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a');
         if (urlTestTargets.length === 0) {
             alert('No URL Test engines available in the current group.');
             return;
@@ -782,7 +776,7 @@ table td, .table .td {
                         setTimeout(() => {
                             if (confirm('Global URL Testing Finished! Clean up Dead/Timed-out proxies right now?')) {
                                 visibleContainer.querySelectorAll('tr.cbi-section-table-row').forEach(row => {
-                                    let urlTestCell = row.querySelector('td.pw-urltest') || row.querySelectorAll('td')[4];
+                                    let urlTestCell = row.querySelector('td.pw-urltest');
                                     if (urlTestCell) {
                                         let text = urlTestCell.textContent || urlTestCell.innerText;
                                         let rowText = row.textContent || row.innerText || "";
@@ -830,7 +824,7 @@ table td, .table .td {
             </tr>
             {{node-tr}}
         </table>
-        <div class="cbi-section-create cbi-tblsection-create core-patch-container">
+        <div class="cbi-section-create cbi-tblsection-create">
             <input class="cbi-button cbi-button-add" type="button" value="<%:Add%>" onclick="to_add_node()">
             <input class="cbi-button cbi-button-apply" style="display: none" type="button" id="save_order_btn_{{group}}" value="<%:Save Order%>" onclick="save_current_page_order('{{group}}')">
         </div>
@@ -840,11 +834,8 @@ table td, .table .td {
 <script type="text/template" id="node-tr-template">
     <tr class="tr cbi-section-table-row" id="cbi-<%=appname%>-{{id}}">
         <input class="hidden" id="cbid.<%=appname%>.{{id}}.remarks" value="{{remarks_val}}"/>
-        <input class="hidden" id="cbid.passwall2.{{id}}.remarks" value="{{remarks_val}}"/>
         <input class="hidden" id="cbid.<%=appname%>.{{id}}.address" value="{{address_val}}"/>
-        <input class="hidden" id="cbid.passwall2.{{id}}.address" value="{{address_val}}"/>
         <input class="hidden" id="cbid.<%=appname%>.{{id}}.port" value="{{port_val}}"/>
-        <input class="hidden" id="cbid.passwall2.{{id}}.port" value="{{port_val}}"/>
         <td class="td cbi-value-field pw-checkbox">
             <input class="cbi-input-checkbox nodes_select" type="checkbox" cbid="{{id}}" onclick="update_select_state()"/>
         </td>
@@ -874,7 +865,6 @@ table td, .table .td {
         let remarks = o["remarks"] || "";
         let type = o["type"] || "";
         str += "<input type='hidden' id='cbid.<%=appname%>." + o[".name"] + ".type' value='" + type + "'/>";
-        str += "<input type='hidden' id='cbid.passwall2." + o[".name"] + ".type' value='" + type + "'/>";
         if (type == "sing-box" || type == "Xray") {
             let protocol = o["protocol"]
             let p = "";
@@ -1080,27 +1070,35 @@ table td, .table .td {
         });
         
         var actionWatcher = new MutationObserver(function() {
-            var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]') || document.querySelector('input[onclick*="delete_select_nodes"]');
-            if(deleteBtn && !document.getElementById('btn_test_all_urls')) {
-                var testAllBtn = document.createElement('input');
-                testAllBtn.type = 'button';
-                testAllBtn.id = 'btn_test_all_urls';
-                testAllBtn.className = 'cbi-button cbi-button-reset';
-                testAllBtn.value = 'Test All URLs';
-                testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
-                
-                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    testAllBtn.style.backgroundColor = '#454a54';
-                    testAllBtn.style.color = '#ffffff';
-                    testAllBtn.style.borderColor = '#5a6270';
-                } else {
-                    testAllBtn.style.backgroundColor = '#f4f5f7';
-                    testAllBtn.style.color = '#333333'; 
-                    testAllBtn.style.borderColor = '#d1d5db';
-                }
-                testAllBtn.onclick = runNativeAllUrlTests;
-                deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
+            // 🛡️ Universal Safe Interceptor: Multipath selector targeting legacy, modern & hybrid builds concurrently
+            var deleteBtn = document.querySelector('input[onclick="delete_select_nodes()"]') 
+                            || document.querySelector('input[onclick*="delete_select_nodes"]')
+                            || document.querySelector('.cbi-button-remove')
+                            || document.querySelector('input[value*="Delete"]');
+            
+            // 🛡️ Critical Shield: Enforce absolute fallback isolation to fully prevent hybrid layout crashes
+            if(!deleteBtn || document.getElementById('btn_test_all_urls')) {
+                return;
             }
+
+            var testAllBtn = document.createElement('input');
+            testAllBtn.type = 'button';
+            testAllBtn.id = 'btn_test_all_urls';
+            testAllBtn.className = 'cbi-button cbi-button-reset';
+            testAllBtn.value = 'Test All URLs';
+            testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
+            
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                testAllBtn.style.backgroundColor = '#454a54';
+                testAllBtn.style.color = '#ffffff';
+                testAllBtn.style.borderColor = '#5a6270';
+            } else {
+                testAllBtn.style.backgroundColor = '#f4f5f7';
+                testAllBtn.style.color = '#333333'; 
+                testAllBtn.style.borderColor = '#d1d5db';
+            }
+            testAllBtn.onclick = runNativeAllUrlTests;
+            deleteBtn.parentNode.insertBefore(testAllBtn, deleteBtn);
         });
         actionWatcher.observe(document.body, { childList: true, subtree: true });
     });
