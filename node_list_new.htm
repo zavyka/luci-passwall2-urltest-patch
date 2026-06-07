@@ -348,7 +348,7 @@ table td, .table .td {
     }
 
     function set_select_all_state(sectionChecked) {
-        var visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]');
+        var visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]') || document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"]');
         if (!visibleContainer) return;
         var nodes = visibleContainer.getElementsByClassName("nodes_select");
         var selectAllChk = visibleContainer.querySelector(".nodes_select_all");
@@ -381,7 +381,7 @@ table td, .table .td {
     }
 
     function update_select_state() {
-        var visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]');
+        var visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]') || document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"]');
         if (!visibleContainer) return;
         var nodes = visibleContainer.getElementsByClassName("nodes_select");
         if (!nodes.length) return;
@@ -409,7 +409,7 @@ table td, .table .td {
     
     function delete_select_nodes() {
         var ids = [];
-        var visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]');
+        var visibleContainer = document.querySelector('#cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-<%=appname%>-nodes > .cbi-tabcontainer[style*="display: block"]') || document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"]');
         if (!visibleContainer) return;
         var doms = visibleContainer.getElementsByClassName("nodes_select");
         if (doms && doms.length > 0) {
