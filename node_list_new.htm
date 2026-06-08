@@ -624,26 +624,28 @@ table td, .table .td {
                             if (x && x.status == 200) {
                                 let strs = dom.indexs.split(",");
                                 for (let i = 0; i < strs.length; i++) {
-                                    const a = ping_value[strs[i]].firstElementChild;
-                                    const cbi_id = ping_value[strs[i]].getAttribute("cbiid");
-                                    let color = "red";
-                                    let text = "<%:Timeout%>";
-                                    if (result.ping !== null && result.ping.trim() !== "") {
-                                        let ping = parseInt(result.ping);
-                                        const cache_data = {
-                                            dom_id: strs[i],
-                                            timestamp: Date.now(),
-                                            savetime: 60 * 1000,
-                                            value: ping
-                                        };
-                                        text = result.ping + " ms";
-                                        localStorage.setItem(auto_detection_time + ":" + dom.address + ":" + dom.port, JSON.stringify(cache_data));
-                                        if (ping < 100) color = "green";
-                                        else if (ping < 200) color = "#fb9a05";
+                                    if (ping_value[strs[i]]) {
+                                        const a = ping_value[strs[i]].firstElementChild;
+                                        const cbi_id = ping_value[strs[i]].getAttribute("cbiid");
+                                        let color = "red";
+                                        let text = "<%:Timeout%>";
+                                        if (result.ping !== null && result.ping.trim() !== "") {
+                                            let ping = parseInt(result.ping);
+                                            const cache_data = {
+                                                dom_id: strs[i],
+                                                timestamp: Date.now(),
+                                                savetime: 60 * 1000,
+                                                value: ping
+                                            };
+                                            text = result.ping + " ms";
+                                            localStorage.setItem(auto_detection_time + ":" + dom.address + ":" + dom.port, JSON.stringify(cache_data));
+                                            if (ping < 100) color = "green";
+                                            else if (ping < 200) color = "#fb9a05";
+                                        }
+                                        a.innerText = text;
+                                        a.style.color = color;
+                                        a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
                                     }
-                                    a.innerText = text;
-                                    a.style.color = color;
-                                    a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
                                 }
                             }
                             res();
@@ -652,11 +654,13 @@ table td, .table .td {
                         function(x) {
                             let strs = dom.indexs.split(",");
                             for (let i = 0; i < strs.length; i++) {
-                                const a = ping_value[strs[i]].firstElementChild;
-                                const cbi_id = ping_value[strs[i]].getAttribute("cbiid");
-                                a.innerText = "<%:Timeout%>";
-                                a.style.color = "red";
-                                a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
+                                if (ping_value[strs[i]]) {
+                                    const a = ping_value[strs[i]].firstElementChild;
+                                    const cbi_id = ping_value[strs[i]].getAttribute("cbiid");
+                                    a.innerText = "<%:Timeout%>";
+                                    a.style.color = "red";
+                                    a.onclick = function () { ping_node(cbi_id, this, auto_detection_time); };
+                                }
                             }
                             res();
                         }
@@ -935,20 +939,18 @@ table td, .table .td {
                         var newDom = node_template.cloneNode(true);
                         newDom.classList.add("cbi-rowstyle-" + (i % 2 + 1));
                         var innerHTML = newDom.innerHTML;
-                        
-                        // Pristine unblocked render hooks matching native variable logic perfectly
                         if (auto_detection_time != "icmp" && o["address"]) {
                             innerHTML = innerHTML.split("{{ping}}").join('<span class="ping"><a href="javascript:void(0)" onclick="javascript:ping_node(\'{{id}}\', this, \'icmp\')"><%:Test%></a></span>');
                         } else {
                             innerHTML = innerHTML.split("{{ping}}").join('<span class="ping_value" cbiid="{{id}}"><a href="javascript:void(0)" style="color:inherit">---</a></span>');
                         }
                         if (auto_detection_time != "tcping" && o["address"] && o["port"]) {
-                            innerHTML = innerHTML.split("{{tcping}}").join('<span class="ping"><a href="javascript:void(0)" onclick="javascript:ping_node(\'{{id}}\', this, \'tcping\')"><%:Test%></a></span>');
+                            innerHTML = innerHTML.split("{{tcping}}").join('<span class="ping"><a href="javascript:void(0)" onclick="javascript:ping_node(\'' + o[".name"] + '\', this, \'tcping\')"><%:Test%></a></span>');
                         } else {
                             innerHTML = innerHTML.split("{{tcping}}").join('<span class="tcping_value" cbiid="{{id}}"><a href="javascript:void(0)" style="color:inherit">---</a></span>');
                         }
                         if (o["address"] && o["port"]) {
-                            innerHTML = innerHTML.split("{{url_test}}").join('<span class="ping"><a href="javascript:void(0)" onclick="javascript:urltest_node(\'{{id}}\', this)"><%:Test%></a></span>');
+                            innerHTML = innerHTML.split("{{url_test}}").join('<span class="ping"><a href="javascript:void(0)" onclick="javascript:urltest_node(\'' + o[".name"] + '\', this)"><%:Test%></a></span>');
                         } else {
                             innerHTML = innerHTML.split("{{url_test}}").join('<span class="ping_value"><a href="javascript:void(0)" style="color:inherit">---</a></span>');
                         }
@@ -979,11 +981,11 @@ table td, .table .td {
                 if (group === "default") group_name = "<%:default%>"
 
                 tab_ul_li_html +=
-                    '<li group_name="' + group + '" id="tab.<%=appname%>.nodes.' + group + '" class="cbi-tab">' +
-                        '<a onclick="this.blur(); return cbi_t_switch(\'<%=appname%>.nodes\', \'' + group + '\')" href="<%=REQUEST_URI%>?tab.<%=appname%>.nodes=' + group + '">' + escape_html(group_name) + " | " + "<font style='color: red'>" + group_nodes[group].length + '</font></a>' +
+                    '<li group_name="' + group + '" id="tab.' + appname + '.nodes.' + group + '" class="cbi-tab">' +
+                        '<a onclick="this.blur(); return cbi_t_switch(\'' + appname + '.nodes\', \'' + group + '\')" href="<%=REQUEST_URI%>?tab.' + appname + '.nodes=' + group + '">' + escape_html(group_name) + " | " + "<font style='color: red'>" + group_nodes[group].length + '</font></a>' +
                     '</li>'
                 tab_content_html +=
-                    '<div class="cbi-tabcontainer" id="container.<%=appname%>.nodes.' + group + '" style="display: none;">' +
+                    '<div class="cbi-tabcontainer" id="container.' + appname + '.nodes.' + group + '" style="display: none;">' +
                     '' + table_html +
                     '</div>'
             }
@@ -1082,15 +1084,13 @@ table td, .table .td {
                 testAllBtn.className = 'cbi-button cbi-button-reset';
                 testAllBtn.value = 'Test All URLs';
                 testAllBtn.style = 'margin-left: 5px; margin-right: 5px; font-weight: bold; cursor: pointer;';
+                testAllBtn.style.color = '#10b981';
                 
-                // 🎨 FIX: Enforce crisp and responsive native text colors across varying dark/light UI frameworks
                 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                     testAllBtn.style.backgroundColor = '#454a54';
-                    testAllBtn.style.color = '#ffffff';
                     testAllBtn.style.borderColor = '#5a6270';
                 } else {
                     testAllBtn.style.backgroundColor = '#f4f5f7';
-                    testAllBtn.style.color = '#333333'; // Enforce absolute slate contrast text for light templates
                     testAllBtn.style.borderColor = '#d1d5db';
                 }
                 testAllBtn.onclick = runNativeAllUrlTests;
