@@ -4,9 +4,6 @@
     function injectUrlTestButton() {
         if (document.getElementById("btn_test_all_urls")) return;
         
-        // CUSTOMIZABLE EXCLUSION LIST: Add or remove your custom keywords here
-        const keywords = ['gb', 'mb', 'day', 'expire', 'remaining', 'traffic', 'アカウント', 'date', 'http://', 'https://'];
-        
         var btn = document.createElement("input");
         btn.className = "btn cbi-button cbi-button-reset";
         btn.type = "button";
@@ -58,19 +55,13 @@
                                                 
                                                 let cb = row.querySelector('.nodes_select');
                                                 if (cb) {
+                                                    // Protect only structural proxy engines
                                                     if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
                                                         cb.checked = false;
                                                         return;
                                                     }
 
-                                                    let lowerRowText = rowText.toLowerCase();
-                                                    let isExcluded = keywords.some(word => lowerRowText.includes(word));
-                                                    
-                                                    if (isExcluded) {
-                                                        cb.checked = false;
-                                                        return;
-                                                    }
-
+                                                    // Standard selection: only tick if Ping failed
                                                     if (text.includes('Timeout') || text.includes('Error')) {
                                                         cb.checked = true;
                                                     } else {
