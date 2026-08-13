@@ -1,0 +1,84 @@
+<!-- INJECTED PASSWALL2 URL-TEST PATCH (NEW ARCHITECTURE) -->
+<script type="text/javascript">
+(function() {
+    function injectUrlTestButton() {
+        if (document.getElementById("btn_test_all_urls")) return;
+        
+        var btn = document.createElement("input");
+        btn.className = "btn cbi-button cbi-button-reset";
+        btn.type = "button";
+        btn.id = "btn_test_all_urls";
+        btn.value = "Test All URLs";
+        btn.style.marginLeft = "2px";
+        btn.style.marginRight = "2px";
+        btn.style.fontWeight = "bold";
+        btn.style.cursor = "pointer";
+        btn.style.color = "#169C31";
+        btn.style.borderColor = "#169C31";
+
+        var targetBtn = document.querySelector('input[onclick*="delete_select_nodes"]');
+        if (targetBtn && targetBtn.parentNode) {
+            targetBtn.parentNode.insertBefore(btn, targetBtn);
+        }
+        
+        btn.onclick = function() {
+            let visibleContainer = document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-passwall2-nodes > .cbi-tabcontainer[style*="display: block"]');
+            if (!visibleContainer) return;
+
+            let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a');
+            if (urlTestTargets.length === 0) {
+                alert('No URL Test engines available in the current group.');
+                return;
+            }
+
+            let totalTests = urlTestTargets.length;
+            let completedTests = 0;
+            let delay = 0;
+
+            if (typeof XHR !== 'undefined') {
+                var originalXHRGet = XHR.get;
+                XHR.get = function(url, args, callback) {
+                    if (url.indexOf('urltest_node') !== -1) {
+                        var originalCallback = callback;
+                        callback = function(xhr, data) {
+                            if (originalCallback) originalCallback(xhr, data);
+                            completedTests++;
+                            if (completedTests === totalTests) {
+                                XHR.get = originalXHRGet;
+                                setTimeout(() => {
+                                    if (confirm('Global URL Testing Finished! Clean up Dead/Timed-out proxies right now?')) {
+                                        visibleContainer.querySelectorAll('tr.cbi-section-table-row').forEach(row => {
+                                            let urlTestCell = row.querySelector('td.pw-urltest');
+                                            if (urlTestCell) {
+                                                let text = urlTestCell.textContent || urlTestCell.innerText;
+                                                let rowText = row.textContent || row.innerText || "";
+                                                if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) return;
+                                                if (text.includes('Timeout') || text.includes('Error')) {
+                                                    let cb = row.querySelector('.nodes_select');
+                                                    if (cb) cb.checked = true;
+                                                }
+                                            }
+                                        });
+                                        if (typeof update_select_state === 'function') update_select_state();
+                                    }
+                                }, 500);
+                            }
+                        };
+                    }
+                    return originalXHRGet.apply(this, arguments);
+                };
+            }
+
+            urlTestTargets.forEach(target => {
+                setTimeout(() => { target.click(); }, delay);
+                delay += 100;
+            });
+        };
+    }
+
+    injectUrlTestButton();
+    setTimeout(injectUrlTestButton, 500);
+    setTimeout(injectUrlTestButton, 1000);
+})();
+</script>
+<!-- END OF INJECTED PATCH -->
