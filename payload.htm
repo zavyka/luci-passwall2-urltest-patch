@@ -49,29 +49,39 @@
                                     if (confirm('Global URL Testing Finished! Clean up Dead/Timed-out proxies right now?')) {
                                         visibleContainer.querySelectorAll('tr.cbi-section-table-row').forEach(row => {
                                             let urlTestCell = row.querySelector('td.pw-urltest');
-                                            let cb = row.querySelector('.nodes_select');
-                                            
-                                            if (cb) {
-                                                // 1. Protection: If there is no test link, it's a metadata/info node - do not tick
-                                                let testLink = urlTestCell ? urlTestCell.querySelector('a') : null;
-                                                if (!testLink) {
-                                                    cb.checked = false;
-                                                    return;
-                                                }
-
-                                                // 2. Protection: Keep structural proxies safe
-                                                let rowText = row.textContent || row.innerText || "";
-                                                if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
-                                                    cb.checked = false;
-                                                    return;
-                                                }
-
-                                                // 3. Action: Only tick if Ping result is explicitly failed
+                                            if (urlTestCell) {
                                                 let text = urlTestCell.textContent || urlTestCell.innerText;
-                                                if (text.includes('Timeout') || text.includes('Error')) {
-                                                    cb.checked = true;
-                                                } else {
-                                                    cb.checked = false;
+                                                let rowText = row.textContent || row.innerText || "";
+                                                
+                                                let cb = row.querySelector('.nodes_select');
+                                                if (cb) {
+                                                    if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
+                                                        cb.checked = false;
+                                                        return;
+                                                    }
+
+                                                    let lowerRowText = rowText.toLowerCase();
+                                                    if (
+                                                        lowerRowText.includes('gb') || 
+                                                        lowerRowText.includes('mb') || 
+                                                        lowerRowText.includes('day') || 
+                                                        lowerRowText.includes('expire') || 
+                                                        lowerRowText.includes('remaining') || 
+                                                        lowerRowText.includes('traffic') || 
+                                                        lowerRowText.includes('アカウント') || 
+                                                        lowerRowText.includes('date') ||
+                                                        lowerRowText.includes('http://') ||
+                                                        lowerRowText.includes('https://')
+                                                    ) {
+                                                        cb.checked = false;
+                                                        return;
+                                                    }
+
+                                                    if (text.includes('Timeout') || text.includes('Error')) {
+                                                        cb.checked = true;
+                                                    } else {
+                                                        cb.checked = false;
+                                                    }
                                                 }
                                             }
                                         });
