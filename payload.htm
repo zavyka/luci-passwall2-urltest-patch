@@ -52,10 +52,18 @@
                                             if (urlTestCell) {
                                                 let text = urlTestCell.textContent || urlTestCell.innerText;
                                                 let rowText = row.textContent || row.innerText || "";
+                                                
+                                                // محافظت از نودهای سیستمی
                                                 if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) return;
-                                                if (text.includes('Timeout') || text.includes('Error')) {
-                                                    let cb = row.querySelector('.nodes_select');
-                                                    if (cb) cb.checked = true;
+                                                
+                                                let cb = row.querySelector('.nodes_select');
+                                                if (cb) {
+                                                    // اگر مرده بود، تیک بزن. در غیر این صورت تیک را بردار.
+                                                    if (text.includes('Timeout') || text.includes('Error')) {
+                                                        cb.checked = true;
+                                                    } else {
+                                                        cb.checked = false;
+                                                    }
                                                 }
                                             }
                                         });
