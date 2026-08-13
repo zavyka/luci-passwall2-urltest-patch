@@ -20,14 +20,14 @@ When you have a large number of nodes/configurations in the PassWall 2 plugin, c
 
 This patch automatically injects a smart **"Test All URLs"** button directly into the nodes toolbar. With just a single click, it sequentially triggers the URL test for all available configurations with a safe, optimized delay to prevent UI freezing.
 
-**Smart Multi-Architecture & Core Protection Feature**
+**Smart Multi-Architecture & Core Protection**
 
-* **Multi-Version Stability:** The installer script (`patch.sh`) dynamically detects your LuCI architecture. Whether you are running the traditional interface or the modern client-side template matrix, it injects the perfect, compatible version automatically.
+* **Multi-Version Stability:** The installer script (`patch.sh`) dynamically detects your LuCI architecture. Whether you are running the traditional interface or the modern 26.8.10+ client-side template matrix, it automatically downloads and seamlessly applies the perfectly compliant version using a Hybrid Payload Injection system.
 * **Structural Proxy Protection:** Virtual and structural configurations such as **Shunt**, **Balancing (Load Balancer)**, and **URLTest** engines are allowed to participate in the ping sequence so you can monitor their live status. However, they are strictly excluded from the final automatic selection loop, shielding your core setup from accidental bulk deletion!
 * **Accidental Selection Guard:** Once testing is finished, it automatically checks (ticks) timed-out or failed configurations based **ONLY** on the URL Test column result, keeping your healthy proxies safe.
 
 ### **Features**
-* **Auto-Backup:** Automatically creates a backup of your original files (`node_list_classic.htm` / `node_list_new.htm`) before applying any changes.
+* **Auto-Backup:** Automatically creates a safe factory backup of your original `node_list.htm` before applying changes, allowing for instant safe recovery.
 * **Theme Companion:** Fully equipped with a theme scheme detector that automatically shifts button styles to fit perfectly in both Light and high-contrast Dark LuCI layouts.
 * **Idempotent Script:** Safe to run multiple times; it will never create duplicate buttons or break your existing structure.
 * **One-Click Install:** No extra desktop tools (like WinSCP) required.
@@ -73,19 +73,20 @@ If this patch made your life easier and helped you clean up dead configurations 
 <summary><b> 🇮🇷 توضیحات و راهنمای فارسی (برای باز شدن کلیک کنید)</b></summary>
 
 ### **درباره پروژه**
-زمانی که تعداد کانفیگ‌ها یا گره‌ها (Nodes) در افزونه PassWall 2 زیاد باشد، کلیک کردن روی دکمه‌ی Test تک‌تک آن‌ها برای سنجش پینگ و تاخیر زمان‌بر و خسته‌کننده خواهد بود.
+زمانی که تعداد کانفیگ‌ها یا گره‌ها (Nodes) در افزونه PassWall 2 زیاد باشد، کلیک کردن روی دکمه‌ی Test تک‌تک آن‌ها برای سنجش پینگ و تاخیر، بسیار زمان‌بر و خسته‌کننده خواهد بود.
 
-این پچ به صورت خودکار یک دکمه‌ی اختصاصی و هوشمند به نام "Test All URLs" را درست بین دکمه‌های بازنشانی همگانی و حذف جدول منوی Node List تزریق می‌کند. با فشردن این دکمه، تست پینگ تمامی کانفیگ‌ها به صورت زنجیره‌ای و پشت سر هم با یک تاخیر بهینه و ایمن اجرا می‌شود.
+این پچ به صورت خودکار یک دکمه‌ی اختصاصی و هوشمند به نام **"Test All URLs"** را مستقیماً در نوار ابزار (Toolbar) تزریق می‌کند. با فشردن این دکمه، تست پینگ تمامی کانفیگ‌ها به صورت زنجیره‌ای و پشت سر هم با یک تاخیر بهینه و ایمن اجرا می‌شود تا از هنگ کردن رابط کاربری جلوگیری شود.
 
 **پایداری چندنسخه‌ای و لایه حفاظتی نودهای مجازی**
 
-* **پشتیبانی از ساختارهای جدید لوسی (Multi-Architecture):** اسکریپت نصب (`patch.sh`) به صورت هوشمند معماری روتر شما را اسکن می‌کند. چه از نسخه‌های سنتی لوسی استفاده کنید و چه از نسخه‌های مدرن مبتنی بر کلاینت‌تمپلیت، فایل کاملاً هماهنگ و بدون باگ را به صورت خودکار تزریق خواهد کرد.
+* **پشتیبانی از ساختارهای جدید لوسی (Multi-Architecture):** اسکریپت نصب (`patch.sh`) به صورت هوشمند معماری روتر شما را اسکن می‌کند. چه از نسخه‌های سنتی لوسی استفاده کنید و چه از نسخه‌های مدرن (26.8.10 به بالا)، سیستم با استفاده از روش تزریق ترکیبی (Hybrid Injection) نسخه کاملاً سازگار را به نرمی اعمال می‌کند تا هیچ آسیبی به کدهای بومی روتر وارد نشود.
 * **محافظت از کانفیگ‌های Shunt و لودبالانسر:** کانفیگ‌های مدیریتی و مجازی مانند **Shunt (شانت)**، **Balancing (لود بالانسر)** و **URLTest** اجازه دارند در زنجیره پینگ شرکت کنند تا وضعیت لایو آن‌ها را رصد کنید؛ اما سیستم به طور هوشمند آن‌ها را از لوپ تیک‌خوردن خودکار در پایان تست مستثنی می‌کند تا کانفیگ‌های اصلی شما به اشتباه حذف نشوند.
-* **تفکیک هوشمند پروکسی‌های مرده:** پس از پایان فرآیند، سیستم تنها نودهایی را که در ستون URL Test وضعیت Timeout یا Error دارند تیک می‌زند تا بتوانید با دکمه حذف پیش‌فرض پسوال، آن‌ها را یک‌جا پاک‌سازی کنید.
+* **تفکیک هوشمند پروکسی‌های مرده:** پس از پایان فرآیند، سیستم تنها نودهایی را که در ستون URL Test وضعیت Timeout یا Error دارند تیک می‌زند تا بتوانید با دکمه حذف پیش‌فرض پسوال، آن‌ها را بدون آسیب به پروکسی‌های سالم یک‌جا پاک‌سازی کنید.
 
 ### **ویژگی‌ها**
-- **بکاپ خودکار:** قبل از اعمال هرگونه تغییر، یک نسخه پشتیبان از فایل‌های اصلی سیستم شما تهیه می‌کند و در اجراهای بعدی هرگز آن‌ها را بازنویسی نمی‌کند.
+- **بکاپ خودکار:** قبل از اعمال هرگونه تغییر، یک نسخه پشتیبان از فایل اصلی سیستم شما تهیه می‌کند تا بازگشت به حالت کارخانه در کسری از ثانیه ممکن باشد.
 - **سازگار با تم تاریک (Dark Mode):** به سنسور تشخیص تم لوسی مجهز است تا در حالت روشن کاملاً هماهنگ و در حالت تاریک با رنگ زغالی مدرن و متن سفید کاملاً خوانا و شیک باشد.
+- **اسکریپت ایمن (Idempotent):** اجرای چندباره‌ی این اسکریپت کاملاً بی‌خطر است؛ هرگز دکمه‌های تکراری نمی‌سازد و ساختار فعلی سیستم شما را به هم نمی‌ریزد.
 - **سیستم خود-ترمیم (Rollback):** در صورت قطع ناگهانی اینترنت یا فیلترینگ در حین دانلود (با سقف انتظار ۲۰ ثانیه)، اسکریپت فوراً متوقف شده و بکاپ سیستم را برمی‌گرداند تا پنل روتر خراب نشود.
 - **نصب تک‌خطی:** به هیچ ابزار جانبی یا انتقال فایل دستی (مثل WinSCP) نیاز ندارد.
 
@@ -95,7 +96,7 @@ If this patch made your life easier and helped you clean up dead configurations 
 <pre><code>wget -qO- https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh | sh</code></pre>
 
 ### **🔄 مرحله آخر و منطق تست مجدد**
-پس از اجرای موفقیت‌آمیز دستور در ترمینال، وارد پنل وب روتر خود شده و کلیدهای ترکیبی **Ctrl + F5** را در مرورگر بزنید تا حافظه کش پاک شده و دکمه‌ی جدید ظاهر شود.
+پس از اجرای موفقیت‌آمیز دستور در ترمینال، وارد پنل وب روتر خود شده، به مسیر PassWall 2 -> Node List بروید و کلیدهای ترکیبی **Ctrl + F5** را در مرورگر بزنید تا حافظه کش پاک شده و دکمه‌ی جدید ظاهر شود.
 
 * **نحوه گرفتن تست دوباره (Re-testing):** جهت وفاداری به پایداری فرانت‌اند و جلوگیری از تداخل درخواست‌های پینگ در پس‌زمینه، کلیک مجددِ مستقیم روی دکمه قفل است. برای اجرای یک تست تازه، کافیست یک‌بار دکمه‌ی فابریک **Reset (بازنشانی)** خودِ پسوال را فشار دهید تا سلول‌ها خنثی شوند؛ سپس می‌توانید دکمه‌ی **Test All URLs** را برای اسکن جدید بفشارید.
 
@@ -109,17 +110,17 @@ If this patch made your life easier and helped you clean up dead configurations 
 <pre><code>passwall2-urltest-uninstall</code></pre>
 
 #### **روش دوم: 🌐 حذف آنلاین از طریق گیت‌هاب**
-همچنین می‌توانید در صورت متصل بودن اینترنت، دستور مستقیم زیر را برای حذف اجرا کنید:
+همچنین می‌توانید برای اجرای عملیات حذف، دستور مستقیم زیر را وارد کنید:
 
 <pre><code>wget -qO- https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh | sh -s uninstall</code></pre>
 
-*توضیح: هر دو دستور فایل‌های اورجینال کارخانه را سر جایش برگردانده، کش لوسی را پاک می‌کنند و هیچ فایل اضافه‌ای روی روتر باقی نمی‌گذارند.*
+*توضیح: هر دو دستور فایل‌های اورجینال کارخانه را سر جایش برگردانده، کش لوسی را پاک می‌کنند و روتر شما را کاملاً تمیز تحویل می‌دهند.*
 
 ---
 
 **⭐ حمایت از پروژه**
 
-اگر این ابزار برای شما کاربردی بوده و به پاک‌سازی سریع کانفیگ‌های مرده کمک کرده است، لطفاً با دادن یک ستاره (Star) در بالای صفحه گیت‌هاب از پروژه حمایت کنید! همین یک کلیک ساده انگیزه بزرگی برای من جهت توسعه و انتشار پچ‌های بعدی خواهد بود. 🙌
+اگر این ابزار برای شما کاربردی بوده و به پاک‌سازی سریع کانفیگ‌های مرده کمک کرده است، لطفاً با دادن یک ستاره (Star) در بالای صفحه گیت‌هاب از پروژه حمایت کنید! همین یک کلیک ساده انگیزه بزرگی برای من جهت توسعه و انتشار پچ‌های بعدی در دنیای OpenWrt خواهد بود. از حمایت شما سپاسگزارم! 🙌
 
 </details>
 
