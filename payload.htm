@@ -53,12 +53,30 @@
                                                 let text = urlTestCell.textContent || urlTestCell.innerText;
                                                 let rowText = row.textContent || row.innerText || "";
                                                 
-                                                // محافظت از نودهای سیستمی
-                                                if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) return;
-                                                
                                                 let cb = row.querySelector('.nodes_select');
                                                 if (cb) {
-                                                    // اگر مرده بود، تیک بزن. در غیر این صورت تیک را بردار.
+                                                    if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
+                                                        cb.checked = false;
+                                                        return;
+                                                    }
+
+                                                    let lowerRowText = rowText.toLowerCase();
+                                                    if (
+                                                        lowerRowText.includes('gb') || 
+                                                        lowerRowText.includes('mb') || 
+                                                        lowerRowText.includes('day') || 
+                                                        lowerRowText.includes('expire') || 
+                                                        lowerRowText.includes('remaining') || 
+                                                        lowerRowText.includes('traffic') || 
+                                                        lowerRowText.includes('アカウント') || 
+                                                        lowerRowText.includes('date') ||
+                                                        lowerRowText.includes('http://') ||
+                                                        lowerRowText.includes('https://')
+                                                    ) {
+                                                        cb.checked = false;
+                                                        return;
+                                                    }
+
                                                     if (text.includes('Timeout') || text.includes('Error')) {
                                                         cb.checked = true;
                                                     } else {
