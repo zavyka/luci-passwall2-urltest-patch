@@ -55,13 +55,28 @@
                                                 
                                                 let cb = row.querySelector('.nodes_select');
                                                 if (cb) {
-                                                    // Protect only structural proxy engines
                                                     if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
                                                         cb.checked = false;
                                                         return;
                                                     }
 
-                                                    // Standard selection: only tick if Ping failed
+                                                    let lowerRowText = rowText.toLowerCase();
+                                                    if (
+                                                        lowerRowText.includes('gb') || 
+                                                        lowerRowText.includes('mb') || 
+                                                        lowerRowText.includes('day') || 
+                                                        lowerRowText.includes('expire') || 
+                                                        lowerRowText.includes('remaining') || 
+                                                        lowerRowText.includes('traffic') || 
+                                                        lowerRowText.includes('アカウント') || 
+                                                        lowerRowText.includes('date') ||
+                                                        lowerRowText.includes('http://') ||
+                                                        lowerRowText.includes('https://')
+                                                    ) {
+                                                        cb.checked = false;
+                                                        return;
+                                                    }
+
                                                     if (text.includes('Timeout') || text.includes('Error')) {
                                                         cb.checked = true;
                                                     } else {
