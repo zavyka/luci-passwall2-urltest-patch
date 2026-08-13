@@ -34,11 +34,10 @@ if [ "$1" = "uninstall" ]; then
 fi
 
 # =================================================
-#  BLOCK 2: STANDARD SAFE INSTALLATION SYSTEM
+#  BLOCK 2: HYBRID INSTALLATION SYSTEM
 # =================================================
 echo "Checking system compatibility..."
 
-# Strict compatibility wall with dedicated Error Block Layout
 if [ ! -f "$TARGET_PATH" ]; then
     echo -e "${RED}"
     echo "#################################################"
@@ -60,23 +59,30 @@ fi
 
 echo -e "${GREEN}Compatibility check passed! Proceeding with installation...${NC}"
 
-# Safely navigate to the directory now that we know the file exists
 cd /usr/lib/lua/luci/view/passwall2/node_list/
 
-# Smart Backup Logic - Protect the original untampered file
+# Smart Backup Logic
 if [ ! -f "node_list.htm.bak" ]; then
     cp node_list.htm node_list.htm.bak
     echo "Original system backup created successfully: node_list.htm.bak"
 else
-    echo -e "${YELLOW}Notice:${NC} An existing original backup was found. Skipping backup modification to protect your original files."
+    echo -e "${YELLOW}Notice:${NC} Backup exists. Ensuring clean slate..."
+    cp node_list.htm.bak node_list.htm
 fi
 
-# Dynamic Architecture Detection Logic
+# Dynamic Hybrid Architecture Detection Logic
 echo "Analyzing PassWall 2 core components..."
 if grep -q "loadNodeList" "node_list.htm.bak"; then
     echo -e "${GREEN}-> New PassWall 2 Template Architecture detected!${NC}"
-    echo "Downloading compliant pre-patched interface file..."
-    wget --no-check-certificate -T 20 -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list_new.htm
+    echo "Downloading and dynamically injecting smart payload..."
+    wget --no-check-certificate -T 20 -qO /tmp/payload.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/payload.htm
+    
+    if [ $? -eq 0 ] && [ -s "/tmp/payload.htm" ]; then
+        cat /tmp/payload.htm >> node_list.htm
+        rm -f /tmp/payload.htm
+    else
+        false # Force error triggering
+    fi
 else
     echo -e "${GREEN}-> Classic PassWall 2 CBI Architecture detected!${NC}"
     echo "Downloading compliant pre-patched interface file..."
@@ -90,25 +96,14 @@ if [ $? -ne 0 ]; then
     echo "                 DOWNLOAD ERROR                  "
     echo "#################################################"
     echo -e "${NC}"
-    echo -e "${YELLOW}Reason:${NC} Failed to download interface file from GitHub (20s Timeout)."
-    echo ""
-    echo -e "${RED}Possible Causes:${NC}"
-    echo " - No internet connection on the router."
-    echo " - GitHub raw servers are blocked/filtered by your ISP."
-    echo " - Temporary DNS resolution issue."
+    echo -e "${YELLOW}Reason:${NC} Failed to fetch required files from GitHub."
     echo ""
     echo -e "${YELLOW}🚨 Automatic Recovery Active:${NC}"
     echo " Restoring the original system backup right now..."
     
-    # Executing your backup restoration logic automatically
-    BACKUP_PATH=$(find /usr/lib/lua/luci/view/passwall2/ -name "node_list.htm.bak" | head -n 1)
-    if [ -n "$BACKUP_PATH" ]; then
-        rm -f "${BACKUP_PATH%.bak}"
-        mv "$BACKUP_PATH" "${BACKUP_PATH%.bak}"
-        echo -e "${GREEN} -> Original backup successfully restored! Your system is safe.${NC}"
-    else
-        echo -e "${RED} -> [Critical] Backup file not found to restore.${NC}"
-    fi
+    rm -f node_list.htm
+    cp node_list.htm.bak node_list.htm
+    echo -e "${GREEN} -> Original backup successfully restored! Your system is safe.${NC}"
     
     echo -e "${RED}#################################################${NC}"
     echo ""
@@ -144,7 +139,7 @@ EOF
 chmod +x /usr/bin/passwall2-urltest-uninstall
 
 echo "================================================="
-echo -e "${GREEN} PassWall 2 Test All URLs Patch Applied Successfully!${NC}"
+echo -e "${GREEN} PassWall 2 Hybrid Patch Applied Successfully!${NC}"
 echo -e " Local offline uninstaller created: ${YELLOW}passwall2-urltest-uninstall${NC}"
 echo " Please refresh your browser using Ctrl + F5."
 echo "================================================="
