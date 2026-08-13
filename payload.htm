@@ -4,6 +4,9 @@
     function injectUrlTestButton() {
         if (document.getElementById("btn_test_all_urls")) return;
         
+        // CUSTOMIZABLE EXCLUSION LIST: Add or remove your custom keywords here
+        const keywords = ['gb', 'mb', 'day', 'expire', 'remaining', 'traffic', 'アカウント', 'date', 'http://', 'https://'];
+        
         var btn = document.createElement("input");
         btn.className = "btn cbi-button cbi-button-reset";
         btn.type = "button";
@@ -61,18 +64,9 @@
                                                     }
 
                                                     let lowerRowText = rowText.toLowerCase();
-                                                    if (
-                                                        lowerRowText.includes('gb') || 
-                                                        lowerRowText.includes('mb') || 
-                                                        lowerRowText.includes('day') || 
-                                                        lowerRowText.includes('expire') || 
-                                                        lowerRowText.includes('remaining') || 
-                                                        lowerRowText.includes('traffic') || 
-                                                        lowerRowText.includes('アカウント') || 
-                                                        lowerRowText.includes('date') ||
-                                                        lowerRowText.includes('http://') ||
-                                                        lowerRowText.includes('https://')
-                                                    ) {
+                                                    let isExcluded = keywords.some(word => lowerRowText.includes(word));
+                                                    
+                                                    if (isExcluded) {
                                                         cb.checked = false;
                                                         return;
                                                     }
