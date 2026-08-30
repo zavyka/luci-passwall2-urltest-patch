@@ -22,12 +22,12 @@ This patch automatically injects a smart **"Test All URLs"** button directly int
 
 **Smart Multi-Architecture & Core Protection**
 
-* **Multi-Version Stability:** The installer script (`patch.sh`) dynamically detects your LuCI architecture. Whether you are running the traditional interface or the modern 26.8.10+ client-side template matrix, it automatically downloads and seamlessly applies the perfectly compliant version using a Hybrid Payload Injection system.
-* **Structural Proxy Protection:** Virtual and structural configurations such as **Shunt**, **Balancing (Load Balancer)**, and **URLTest** engines are allowed to participate in the ping sequence so you can monitor their live status. However, they are strictly excluded from the final automatic selection loop, shielding your core setup from accidental bulk deletion!
-* **Accidental Selection Guard:** Once testing is finished, it automatically checks (ticks) timed-out or failed configurations based **ONLY** on the URL Test column result, keeping your healthy proxies safe.
+* **Universal Dynamic Injection:** The installer script (`patch.sh`) safely injects a lightweight payload directly into the interface without overwriting native system files, ensuring 100% immunity against upstream PassWall Lua core updates and preventing UI crashes.
+* **Structural Proxy & Metadata Protection:** Virtual configurations such as **Shunt**, **Balancing (Load Balancer)**, and **URLTest** engines, as well as descriptive/traffic info nodes (e.g., remaining GB, expiration dates), are strictly shielded from accidental bulk selection!
+* **Accidental Selection Guard:** Once testing is finished, it automatically checks (ticks) timed-out or failed configurations based **ONLY** on the URL Test column result, keeping your healthy proxies safe. Revived nodes are automatically un-ticked upon re-testing.
 
 ### **Features**
-* **Auto-Backup:** Automatically creates a safe factory backup of your original `node_list.htm` before applying changes, allowing for instant safe recovery.
+* **Zero-Risk Injection:** Operates directly on the DOM layer without replacing system files, keeping native router firmware components completely untouched.
 * **Theme Companion:** Fully equipped with a theme scheme detector that automatically shifts button styles to fit perfectly in both Light and high-contrast Dark LuCI layouts.
 * **Idempotent Script:** Safe to run multiple times; it will never create duplicate buttons or break your existing structure.
 * **One-Click Install:** No extra desktop tools (like WinSCP) required.
@@ -57,7 +57,7 @@ Alternatively, you can run the uninstallation trigger directly from GitHub:
 
 <pre><code>wget -qO- https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh | sh -s uninstall</code></pre>
 
-*Note: Both methods will fully restore your original factory files, clean up the LuCI cache, and leave your router completely clean.*
+*Note: Both methods will cleanly strip the injected code, purge the LuCI cache, and restore the factory layout without touching your configurations.*
 
 ---
 
@@ -79,15 +79,15 @@ If this patch made your life easier and helped you clean up dead configurations 
 
 **پایداری چندنسخه‌ای و لایه حفاظتی نودهای مجازی**
 
-* **پشتیبانی از ساختارهای جدید لوسی (Multi-Architecture):** اسکریپت نصب (`patch.sh`) به صورت هوشمند معماری روتر شما را اسکن می‌کند. چه از نسخه‌های سنتی لوسی استفاده کنید و چه از نسخه‌های مدرن (26.8.10 به بالا)، سیستم با استفاده از روش تزریق ترکیبی (Hybrid Injection) نسخه کاملاً سازگار را به نرمی اعمال می‌کند تا هیچ آسیبی به کدهای بومی روتر وارد نشود.
-* **محافظت از کانفیگ‌های Shunt و لودبالانسر:** کانفیگ‌های مدیریتی و مجازی مانند **Shunt (شانت)**، **Balancing (لود بالانسر)** و **URLTest** اجازه دارند در زنجیره پینگ شرکت کنند تا وضعیت لایو آن‌ها را رصد کنید؛ اما سیستم به طور هوشمند آن‌ها را از لوپ تیک‌خوردن خودکار در پایان تست مستثنی می‌کند تا کانفیگ‌های اصلی شما به اشتباه حذف نشوند.
-* **تفکیک هوشمند پروکسی‌های مرده:** پس از پایان فرآیند، سیستم تنها نودهایی را که در ستون URL Test وضعیت Timeout یا Error دارند تیک می‌زند تا بتوانید با دکمه حذف پیش‌فرض پسوال، آن‌ها را بدون آسیب به پروکسی‌های سالم یک‌جا پاک‌سازی کنید.
+* **تزریق داینامیک و سازگاری سراسری:** اسکریپت نصب (`patch.sh`) کدها را به صورت مستقیم و بدون بازنویسی فایل‌های بومی سیستم تزریق می‌کند. این ساختار پروژه را در برابر هرگونه تغییر در کدهای هسته لوسی یا آپدیت‌های پس‌وال کاملاً ایمن ساخته و مانع از کرش پنل روتر می‌شود.
+* **محافظت از کانفیگ‌های ساختاری و نودهای حجمی:** کانفیگ‌های مدیریتی مانند **Shunt (شانت)**، **Balancing (لود بالانسر)** و **URLTest** به همراه ردیف‌های توضیحی (شامل ترافیک، حجم باقیمانده و تاریخ انقضا) به طور هوشمند از لوپ حذف خودکار مستثنی شده‌اند.
+* **تفکیک هوشمند پروکسی‌های مرده:** پس از پایان فرآیند، تنها نودهایی که وضعیت Timeout یا Error دارند تیک می‌خورند. در صورت تست مجدد، کانفیگ‌هایی که مجدداً فعال شده باشند به صورت اتوماتیک از حالت انتخاب خارج می‌شوند.
 
 ### **ویژگی‌ها**
-- **بکاپ خودکار:** قبل از اعمال هرگونه تغییر، یک نسخه پشتیبان از فایل اصلی سیستم شما تهیه می‌کند تا بازگشت به حالت کارخانه در کسری از ثانیه ممکن باشد.
+- **تزریق ایمن و بدون ریسک:** به جای جایگزینی کل فایل‌های سیستمی، مستقیماً در لایه رابط کاربری تزریق انجام می‌دهد و هیچ دستکاری در کدهای پایه روتر ایجاد نمی‌کند.
 - **سازگار با تم تاریک (Dark Mode):** به سنسور تشخیص تم لوسی مجهز است تا در حالت روشن کاملاً هماهنگ و در حالت تاریک با رنگ زغالی مدرن و متن سفید کاملاً خوانا و شیک باشد.
 - **اسکریپت ایمن (Idempotent):** اجرای چندباره‌ی این اسکریپت کاملاً بی‌خطر است؛ هرگز دکمه‌های تکراری نمی‌سازد و ساختار فعلی سیستم شما را به هم نمی‌ریزد.
-- **سیستم خود-ترمیم (Rollback):** در صورت قطع ناگهانی اینترنت یا فیلترینگ در حین دانلود (با سقف انتظار ۲۰ ثانیه)، اسکریپت فوراً متوقف شده و بکاپ سیستم را برمی‌گرداند تا پنل روتر خراب نشود.
+- **سیستم بازگشت تمیز (Rollback):** در صورت نیاز به حذف، کدهای تزریق‌شده را به طور دقیق پاکسازی کرده و کش لوسی را نوسازی می‌کند.
 - **نصب تک‌خطی:** به هیچ ابزار جانبی یا انتقال فایل دستی (مثل WinSCP) نیاز ندارد.
 
 ### **🛠 نحوه اجرا و نصب**
@@ -114,7 +114,7 @@ If this patch made your life easier and helped you clean up dead configurations 
 
 <pre><code>wget -qO- https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh | sh -s uninstall</code></pre>
 
-*توضیح: هر دو دستور فایل‌های اورجینال کارخانه را سر جایش برگردانده، کش لوسی را پاک می‌کنند و روتر شما را کاملاً تمیز تحویل می‌دهند.*
+*توضیح: هر دو دستور کدهای تزریق‌شده را به صورت کامل پاکسازی کرده، کش لوسی را پاک می‌کنند و روتر را بدون دستکاری در تنظیمات به حالت اورجینال برمی‌گردانند.*
 
 ---
 
