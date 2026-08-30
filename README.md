@@ -38,10 +38,8 @@ Open your router's terminal via SSH (e.g., PuTTY), paste the following command, 
 
 <pre><code>wget -qO- https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh | sh</code></pre>
 
-### **🔄 Final Step & Re-testing Logic**
+### **🔄 Final Step**
 After running the script, go to your router's web interface, navigate to the PassWall 2 -> Node List page, and press **Ctrl + F5** in your browser to clear the browser cache and see the new button.
-
-* **How to run a new test batch:** To ensure maximum stability and prevent parallel request conflicts in the background, the direct double-clicking of the button is locked. If you wish to execute a new fresh batch of pings, simply click PassWall's native **Reset** button to clear the view, and then you can hit **Test All URLs** again!
 
 ### **⏪ Uninstallation & Recovery**
 
@@ -95,10 +93,8 @@ If this patch made your life easier and helped you clean up dead configurations 
 
 <pre><code>wget -qO- https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/patch.sh | sh</code></pre>
 
-### **🔄 مرحله آخر و منطق تست مجدد**
+### **🔄 مرحله آخر**
 پس از اجرای موفقیت‌آمیز دستور در ترمینال، وارد پنل وب روتر خود شده، به مسیر PassWall 2 -> Node List بروید و کلیدهای ترکیبی **Ctrl + F5** را در مرورگر بزنید تا حافظه کش پاک شده و دکمه‌ی جدید ظاهر شود.
-
-* **نحوه گرفتن تست دوباره (Re-testing):** جهت وفاداری به پایداری فرانت‌اند و جلوگیری از تداخل درخواست‌های پینگ در پس‌زمینه، کلیک مجددِ مستقیم روی دکمه قفل است. برای اجرای یک تست تازه، کافیست یک‌بار دکمه‌ی فابریک **Reset (بازنشانی)** خودِ پسوال را فشار دهید تا سلول‌ها خنثی شوند؛ سپس می‌توانید دکمه‌ی **Test All URLs** را برای اسکن جدید بفشارید.
 
 ### **⏪ نحوه حذف پچ و بازگشت به حالت اورجینال (کارخانه)**
 
