@@ -4,7 +4,6 @@
     function injectUrlTestButton() {
         if (document.getElementById("btn_test_all_urls")) return;
 
-        // Find toolbar actions container or specific delete buttons
         var targetBtn = document.querySelector('input[onclick*="delete_select_nodes"]') || 
                         document.querySelector('.pw-toolbar-field input[onclick*="delete"]') ||
                         document.querySelector('input[value*="Delete"]');
@@ -54,44 +53,62 @@
                             if (completedTests === totalTests) {
                                 XHR.get = originalXHRGet;
                                 setTimeout(() => {
-                                    if (confirm('Global URL Testing Finished! Clean up Dead/Timed-out proxies right now?')) {
-                                        visibleContainer.querySelectorAll('tr.cbi-section-table-row, tr.tr').forEach(row => {
-                                            let testTarget = row.querySelector('td.pw-urltest, [onclick*="urltest_node"]');
-                                            let cb = row.querySelector('.nodes_select, input[type="checkbox"]');
+                                    let deadNodesFound = 0;
+                                    let rowsToProcess = [];
+
+                                    visibleContainer.querySelectorAll('tr.cbi-section-table-row, tr.tr').forEach(row => {
+                                        let testTarget = row.querySelector('td.pw-urltest, [onclick*="urltest_node"]');
+                                        let cb = row.querySelector('.nodes_select, input[type="checkbox"]');
+                                        
+                                        if (testTarget && cb) {
+                                            let rowText = row.textContent || row.innerText || "";
                                             
-                                            if (testTarget && cb) {
-                                                let rowText = row.textContent || row.innerText || "";
-                                                
-                                                if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
-                                                    cb.checked = false;
-                                                    return;
-                                                }
-
-                                                let lowerRowText = rowText.toLowerCase();
-                                                if (
-                                                    lowerRowText.includes('gb') || 
-                                                    lowerRowText.includes('mb') || 
-                                                    lowerRowText.includes('day') || 
-                                                    lowerRowText.includes('expire') || 
-                                                    lowerRowText.includes('remaining') || 
-                                                    lowerRowText.includes('traffic') || 
-                                                    lowerRowText.includes('date') ||
-                                                    lowerRowText.includes('http://') ||
-                                                    lowerRowText.includes('https://')
-                                                ) {
-                                                    cb.checked = false;
-                                                    return;
-                                                }
-
-                                                let text = testTarget.textContent || testTarget.innerText;
-                                                if (text.includes('Timeout') || text.includes('Error')) {
-                                                    cb.checked = true;
-                                                } else {
-                                                    cb.checked = false;
-                                                }
+                                            // Ignore system configurations
+                                            if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
+                                                cb.checked = false;
+                                                return;
                                             }
-                                        });
+
+                                            // Ignore metadata/info configs
+                                            let lowerRowText = rowText.toLowerCase();
+                                            if (
+                                                lowerRowText.includes('gb') || 
+                                                lowerRowText.includes('mb') || 
+                                                lowerRowText.includes('day') || 
+                                                lowerRowText.includes('expire') || 
+                                                lowerRowText.includes('remaining') || 
+                                                lowerRowText.includes('traffic') || 
+                                                lowerRowText.includes('date') ||
+                                                lowerRowText.includes('http://') ||
+                                                lowerRowText.includes('https://')
+                                            ) {
+                                                cb.checked = false;
+                                                return;
+                                            }
+
+                                            let text = testTarget.textContent || testTarget.innerText;
+                                            let isDead = text.includes('Timeout') || text.includes('Error');
+                                            
+                                            if (isDead) {
+                                                deadNodesFound++;
+                                            }
+                                            rowsToProcess.push({ checkbox: cb, dead: isDead });
+                                        }
+                                    });
+
+                                    // Trigger confirmation ONLY if dead proxies exist
+                                    if (deadNodesFound > 0) {
+                                        if (confirm('Global URL Testing Finished! Found ' + deadNodesFound + ' dead/timed-out proxies. Select them for removal now?')) {
+                                            rowsToProcess.forEach(item => {
+                                                item.checkbox.checked = item.dead;
+                                            });
+                                            if (typeof update_select_state === 'function') update_select_state();
+                                        }
+                                    } else {
+                                        // Untick all valid proxies if re-testing was fully successful
+                                        rowsToProcess.forEach(item => { item.checkbox.checked = false; });
                                         if (typeof update_select_state === 'function') update_select_state();
+                                        alert('Global URL Testing Finished! All tested configurations are healthy and alive 🎉');
                                     }
                                 }, 500);
                             }
@@ -108,7 +125,6 @@
         };
     }
 
-    // Interval execution to ensure injection after AJAX DOM render
     var checkInterval = setInterval(function() {
         injectUrlTestButton();
         if (document.getElementById("btn_test_all_urls")) {
