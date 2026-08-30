@@ -24,7 +24,7 @@ This patch automatically injects a smart **"Test All URLs"** button directly int
 
 * **Universal Dynamic Injection:** The installer script (`patch.sh`) safely injects a lightweight payload directly into the interface without overwriting native system files, ensuring 100% immunity against upstream PassWall Lua core updates and preventing UI crashes.
 * **Structural Proxy & Metadata Protection:** Virtual configurations such as **Shunt**, **Balancing (Load Balancer)**, and **URLTest** engines, as well as descriptive/traffic info nodes (e.g., remaining GB, expiration dates), are strictly shielded from accidental bulk selection!
-* **Accidental Selection Guard:** Once testing is finished, it automatically checks (ticks) timed-out or failed configurations based **ONLY** on the URL Test column result, keeping your healthy proxies safe. Revived nodes are automatically un-ticked upon re-testing.
+* **Smart Health-Aware Selection:** If all proxies are healthy, the patch automatically notifies you without prompting for deletion. Confirmation and auto-ticking are strictly triggered only when dead or timed-out proxies exist.
 
 ### **Features**
 * **Zero-Risk Injection:** Operates directly on the DOM layer without replacing system files, keeping native router firmware components completely untouched.
@@ -81,7 +81,7 @@ If this patch made your life easier and helped you clean up dead configurations 
 
 * **تزریق داینامیک و سازگاری سراسری:** اسکریپت نصب (`patch.sh`) کدها را به صورت مستقیم و بدون بازنویسی فایل‌های بومی سیستم تزریق می‌کند. این ساختار پروژه را در برابر هرگونه تغییر در کدهای هسته لوسی یا آپدیت‌های پس‌وال کاملاً ایمن ساخته و مانع از کرش پنل روتر می‌شود.
 * **محافظت از کانفیگ‌های ساختاری و نودهای حجمی:** کانفیگ‌های مدیریتی مانند **Shunt (شانت)**، **Balancing (لود بالانسر)** و **URLTest** به همراه ردیف‌های توضیحی (شامل ترافیک، حجم باقیمانده و تاریخ انقضا) به طور هوشمند از لوپ حذف خودکار مستثنی شده‌اند.
-* **تفکیک هوشمند پروکسی‌های مرده:** پس از پایان فرآیند، تنها نودهایی که وضعیت Timeout یا Error دارند تیک می‌خورند. در صورت تست مجدد، کانفیگ‌هایی که مجدداً فعال شده باشند به صورت اتوماتیک از حالت انتخاب خارج می‌شوند.
+* **تشخیص هوشمند سلامت کامل:** در صورتی که تمام کانفیگ‌ها سالم باشند و پینگ بدهند، سیستم پیام سلامت نمایش داده و دیگر پیام هشدار حذف را باز نمی‌کند. فرآیند تیک زدن خودکار صرفاً در صورت وجود نود مرده فعال می‌شود.
 
 ### **ویژگی‌ها**
 - **تزریق ایمن و بدون ریسک:** به جای جایگزینی کل فایل‌های سیستمی، مستقیماً در لایه رابط کاربری تزریق انجام می‌دهد و هیچ دستکاری در کدهای پایه روتر ایجاد نمی‌کند.
