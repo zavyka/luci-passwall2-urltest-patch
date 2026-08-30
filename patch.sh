@@ -1,145 +1,86 @@
 #!/bin/sh
 
-# Precise absolute path to the target file
 TARGET_PATH="/usr/lib/lua/luci/view/passwall2/node_list/node_list.htm"
 UNINSTALLER_PATH="/usr/bin/passwall2-urltest-uninstall"
 
-# Color constants for terminal output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
-NC='\033[0;m' # No Color
+NC='\033[0;m'
 
 # =================================================
-#  BLOCK 1: SMART UNINSTALL SYSTEM (ONLINE ARGUMENT)
+#  UNINSTALL BLOCK
 # =================================================
 if [ "$1" = "uninstall" ]; then
     echo "Initiating Uninstallation Process..."
-    if [ -f "${TARGET_PATH}.bak" ]; then
-        rm -f "$TARGET_PATH"
-        mv "${TARGET_PATH}.bak" "$TARGET_PATH"
+    if [ -f "$TARGET_PATH" ]; then
+        # Remove injected payload block cleanly without overwriting the whole file
+        sed -i '/<!-- INJECTED PASSWALL2 URL-TEST PATCH/,/<!-- END OF INJECTED PATCH -->/d' "$TARGET_PATH"
+        rm -f "${TARGET_PATH}.bak"
         rm -f /tmp/luci-indexcache /tmp/luci-modulecache
         rm -f "$UNINSTALLER_PATH"
         
         echo -e "${GREEN}=================================================${NC}"
         echo -e "${GREEN} Patch successfully removed!${NC}"
-        echo -e " System restored to the original factory layout."
+        echo -e " Cleaned injected payload directly from native file."
         echo " Please refresh your browser using Ctrl + F5."
         echo -e "${GREEN}=================================================${NC}"
         exit 0
     else
-        echo -e "${RED}Error: Original backup file (.bak) not found.${NC}"
+        echo -e "${RED}Error: Target file not found.${NC}"
         exit 1
     fi
 fi
 
 # =================================================
-#  BLOCK 2: HYBRID INSTALLATION SYSTEM
+#  INSTALL BLOCK
 # =================================================
 echo "Checking system compatibility..."
 
 if [ ! -f "$TARGET_PATH" ]; then
-    echo -e "${RED}"
-    echo "#################################################"
-    echo "               INSTALLATION ERROR                "
-    echo "#################################################"
-    echo -e "${NC}"
-    echo -e "${YELLOW}Reason:${NC} Target file not found at:"
-    echo -e "        $TARGET_PATH"
-    echo ""
-    echo -e "${RED}Compatibility Mismatch:${NC}"
-    echo "This patch is NOT compatible with your current PassWall 2"
-    echo "version or firmware directory structure."
-    echo ""
-    echo -e "${GREEN}Safe Abort:${NC} No changes or backups were made to your system."
-    echo -e "${RED}#################################################${NC}"
-    echo ""
+    echo -e "${RED}Error: Target file not found at: $TARGET_PATH${NC}"
     exit 1
 fi
-
-echo -e "${GREEN}Compatibility check passed! Proceeding with installation...${NC}"
 
 cd /usr/lib/lua/luci/view/passwall2/node_list/
 
-# Smart Backup Logic
-if [ ! -f "node_list.htm.bak" ]; then
-    cp node_list.htm node_list.htm.bak
-    echo "Original system backup created successfully: node_list.htm.bak"
-else
-    echo -e "${YELLOW}Notice:${NC} Backup exists. Ensuring clean slate..."
-    cp node_list.htm.bak node_list.htm
-fi
+# Clean existing injected code first to prevent duplicates
+sed -i '/<!-- INJECTED PASSWALL2 URL-TEST PATCH/,/<!-- END OF INJECTED PATCH -->/d' "$TARGET_PATH"
 
-# Dynamic Hybrid Architecture Detection Logic
-echo "Analyzing PassWall 2 core components..."
-if grep -q "loadNodeList" "node_list.htm.bak"; then
-    echo -e "${GREEN}-> New PassWall 2 Template Architecture detected!${NC}"
-    echo "Downloading and dynamically injecting smart payload..."
-    wget --no-check-certificate -T 20 -qO /tmp/payload.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/payload.htm
-    
-    if [ $? -eq 0 ] && [ -s "/tmp/payload.htm" ]; then
-        cat /tmp/payload.htm >> node_list.htm
-        rm -f /tmp/payload.htm
-    else
-        false # Force error triggering
-    fi
-else
-    echo -e "${GREEN}-> Classic PassWall 2 CBI Architecture detected!${NC}"
-    echo "Downloading compliant pre-patched interface file..."
-    wget --no-check-certificate -T 20 -qO node_list.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/node_list_classic.htm
-fi
+echo "Downloading and injecting Universal Smart Payload..."
+wget --no-check-certificate -T 20 -qO /tmp/payload.htm https://raw.githubusercontent.com/zavyka/luci-passwall2-urltest-patch/main/payload.htm
 
-# Verify download success and AUTOMATICALLY RESTORE BACKUP on failure
-if [ $? -ne 0 ]; then
-    echo -e "${RED}"
-    echo "#################################################"
-    echo "                 DOWNLOAD ERROR                  "
-    echo "#################################################"
-    echo -e "${NC}"
-    echo -e "${YELLOW}Reason:${NC} Failed to fetch required files from GitHub."
-    echo ""
-    echo -e "${YELLOW}🚨 Automatic Recovery Active:${NC}"
-    echo " Restoring the original system backup right now..."
-    
-    rm -f node_list.htm
-    cp node_list.htm.bak node_list.htm
-    echo -e "${GREEN} -> Original backup successfully restored! Your system is safe.${NC}"
-    
-    echo -e "${RED}#################################################${NC}"
-    echo ""
+if [ $? -eq 0 ] && [ -s "/tmp/payload.htm" ]; then
+    cat /tmp/payload.htm >> "$TARGET_PATH"
+    rm -f /tmp/payload.htm
+else
+    echo -e "${RED}Download failed! No changes were made.${NC}"
     exit 1
 fi
 
-# Clean up LuCI Cache ONLY if download was 100% successful
 rm -rf /tmp/luci-indexcache /tmp/luci-modulecache
 
-# =================================================
-#  BLOCK 3: CREATING PERMANENT OFFLINE UNINSTALLER
-# =================================================
+# Generate Offline Uninstaller
 cat << 'EOF' > /usr/bin/passwall2-urltest-uninstall
 #!/bin/sh
 TARGET_PATH="/usr/lib/lua/luci/view/passwall2/node_list/node_list.htm"
 UNINSTALLER_PATH="/usr/bin/passwall2-urltest-uninstall"
 
-if [ -f "${TARGET_PATH}.bak" ]; then
-    rm -f "$TARGET_PATH"
-    mv "${TARGET_PATH}.bak" "$TARGET_PATH"
+if [ -f "$TARGET_PATH" ]; then
+    sed -i '/<!-- INJECTED PASSWALL2 URL-TEST PATCH/,/<!-- END OF INJECTED PATCH -->/d' "$TARGET_PATH"
+    rm -f "${TARGET_PATH}.bak"
     rm -f /tmp/luci-indexcache /tmp/luci-modulecache
     rm -f "$UNINSTALLER_PATH"
-    echo -e "\033[0;32m=================================================\033[0;m"
     echo -e "\033[0;32mPassWall 2 URL-Test Patch removed successfully!\033[0;m"
-    echo -e "System restored to the original factory layout."
-    echo -e "Please refresh your browser using Ctrl + F5."
-    echo -e "\033[0;32m=================================================\033[0;m"
 else
-    echo -e "\033[0;31mError: Backup file (.bak) not found! Cannot restore.\033[0;m"
+    echo -e "\033[0;31mError: Target file not found!\033[0;m"
 fi
 EOF
 
 chmod +x /usr/bin/passwall2-urltest-uninstall
 
 echo "================================================="
-echo -e "${GREEN} PassWall 2 Hybrid Patch Applied Successfully!${NC}"
-echo -e " Local offline uninstaller created: ${YELLOW}passwall2-urltest-uninstall${NC}"
+echo -e "${GREEN} PassWall 2 Universal Patch Applied Successfully!${NC}"
+echo -e " Local uninstaller ready: ${YELLOW}passwall2-urltest-uninstall${NC}"
 echo " Please refresh your browser using Ctrl + F5."
 echo "================================================="
