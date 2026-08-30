@@ -3,31 +3,39 @@
 (function() {
     function injectUrlTestButton() {
         if (document.getElementById("btn_test_all_urls")) return;
-        
+
+        // Find toolbar actions container or specific delete buttons
+        var targetBtn = document.querySelector('input[onclick*="delete_select_nodes"]') || 
+                        document.querySelector('.pw-toolbar-field input[onclick*="delete"]') ||
+                        document.querySelector('input[value*="Delete"]');
+
+        if (!targetBtn || !targetBtn.parentNode) return;
+
         var btn = document.createElement("input");
         btn.className = "btn cbi-button cbi-button-reset";
         btn.type = "button";
         btn.id = "btn_test_all_urls";
         btn.value = "Test All URLs";
-        btn.style.marginLeft = "2px";
-        btn.style.marginRight = "2px";
+        btn.style.marginLeft = "4px";
+        btn.style.marginRight = "4px";
         btn.style.fontWeight = "bold";
         btn.style.cursor = "pointer";
         btn.style.color = "#169C31";
         btn.style.borderColor = "#169C31";
 
-        var targetBtn = document.querySelector('input[onclick*="delete_select_nodes"]');
-        if (targetBtn && targetBtn.parentNode) {
-            targetBtn.parentNode.insertBefore(btn, targetBtn);
-        }
-        
-        btn.onclick = function() {
-            let visibleContainer = document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"]') || document.getElementById('cbi-passwall2-nodes') || document;
+        targetBtn.parentNode.insertBefore(btn, targetBtn);
 
-            // Universal Selector for both Classic and Modern UI
-            let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a, [onclick*="urltest_node"]');
+        btn.onclick = function() {
+            let visibleContainer = document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"]') || 
+                                   document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display: block"]') || 
+                                   document.getElementById('cbi-passwall2-nodes') || 
+                                   document.getElementById('node_list') || 
+                                   document;
+
+            let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a, span.ping a[onclick*="urltest_node"], [onclick*="urltest_node"]');
+            
             if (urlTestTargets.length === 0) {
-                alert('No URL Test engines available in the current group.');
+                alert('No URL Test engines available in the current view.');
                 return;
             }
 
@@ -38,7 +46,7 @@
             if (typeof XHR !== 'undefined') {
                 var originalXHRGet = XHR.get;
                 XHR.get = function(url, args, callback) {
-                    if (url.indexOf('urltest_node') !== -1) {
+                    if (url && url.indexOf('urltest_node') !== -1) {
                         var originalCallback = callback;
                         callback = function(xhr, data) {
                             if (originalCallback) originalCallback(xhr, data);
@@ -47,15 +55,11 @@
                                 XHR.get = originalXHRGet;
                                 setTimeout(() => {
                                     if (confirm('Global URL Testing Finished! Clean up Dead/Timed-out proxies right now?')) {
-                                        visibleContainer.querySelectorAll('tr.cbi-section-table-row, tr.tr, table tr').forEach(row => {
-                                            let testTarget = row.querySelector('td.pw-urltest a, [onclick*="urltest_node"]');
-                                            if (!testTarget) return;
-                                            
-                                            let urlTestCell = testTarget.closest('td, .td');
+                                        visibleContainer.querySelectorAll('tr.cbi-section-table-row, tr.tr').forEach(row => {
+                                            let testTarget = row.querySelector('td.pw-urltest, [onclick*="urltest_node"]');
                                             let cb = row.querySelector('.nodes_select, input[type="checkbox"]');
                                             
-                                            if (urlTestCell && cb) {
-                                                let text = urlTestCell.textContent || urlTestCell.innerText;
+                                            if (testTarget && cb) {
                                                 let rowText = row.textContent || row.innerText || "";
                                                 
                                                 if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
@@ -71,7 +75,6 @@
                                                     lowerRowText.includes('expire') || 
                                                     lowerRowText.includes('remaining') || 
                                                     lowerRowText.includes('traffic') || 
-                                                    lowerRowText.includes('アカウント') || 
                                                     lowerRowText.includes('date') ||
                                                     lowerRowText.includes('http://') ||
                                                     lowerRowText.includes('https://')
@@ -80,6 +83,7 @@
                                                     return;
                                                 }
 
+                                                let text = testTarget.textContent || testTarget.innerText;
                                                 if (text.includes('Timeout') || text.includes('Error')) {
                                                     cb.checked = true;
                                                 } else {
@@ -104,9 +108,15 @@
         };
     }
 
-    injectUrlTestButton();
-    setTimeout(injectUrlTestButton, 500);
-    setTimeout(injectUrlTestButton, 1000);
+    // Interval execution to ensure injection after AJAX DOM render
+    var checkInterval = setInterval(function() {
+        injectUrlTestButton();
+        if (document.getElementById("btn_test_all_urls")) {
+            clearInterval(checkInterval);
+        }
+    }, 300);
+
+    setTimeout(function() { clearInterval(checkInterval); }, 10000);
 })();
 </script>
 <!-- END OF INJECTED PATCH -->
