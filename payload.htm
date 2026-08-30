@@ -1,4 +1,4 @@
-<!-- INJECTED PASSWALL2 URL-TEST PATCH (NEW ARCHITECTURE) -->
+<!-- INJECTED PASSWALL2 URL-TEST PATCH (UNIVERSAL) -->
 <script type="text/javascript">
 (function() {
     function injectUrlTestButton() {
@@ -22,10 +22,10 @@
         }
         
         btn.onclick = function() {
-            let visibleContainer = document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"], #cbi-passwall2-nodes > .cbi-tabcontainer[style*="display: block"]');
-            if (!visibleContainer) return;
+            let visibleContainer = document.querySelector('#cbi-passwall2-nodes > .cbi-tabcontainer[style*="display:block"]') || document.getElementById('cbi-passwall2-nodes') || document;
 
-            let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a');
+            // Universal Selector for both Classic and Modern UI
+            let urlTestTargets = visibleContainer.querySelectorAll('td.pw-urltest a, [onclick*="urltest_node"]');
             if (urlTestTargets.length === 0) {
                 alert('No URL Test engines available in the current group.');
                 return;
@@ -47,41 +47,43 @@
                                 XHR.get = originalXHRGet;
                                 setTimeout(() => {
                                     if (confirm('Global URL Testing Finished! Clean up Dead/Timed-out proxies right now?')) {
-                                        visibleContainer.querySelectorAll('tr.cbi-section-table-row').forEach(row => {
-                                            let urlTestCell = row.querySelector('td.pw-urltest');
-                                            if (urlTestCell) {
+                                        visibleContainer.querySelectorAll('tr.cbi-section-table-row, tr.tr, table tr').forEach(row => {
+                                            let testTarget = row.querySelector('td.pw-urltest a, [onclick*="urltest_node"]');
+                                            if (!testTarget) return;
+                                            
+                                            let urlTestCell = testTarget.closest('td, .td');
+                                            let cb = row.querySelector('.nodes_select, input[type="checkbox"]');
+                                            
+                                            if (urlTestCell && cb) {
                                                 let text = urlTestCell.textContent || urlTestCell.innerText;
                                                 let rowText = row.textContent || row.innerText || "";
                                                 
-                                                let cb = row.querySelector('.nodes_select');
-                                                if (cb) {
-                                                    if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
-                                                        cb.checked = false;
-                                                        return;
-                                                    }
+                                                if (rowText.includes('Shunt') || rowText.includes('Balancing') || rowText.includes('URLTest')) {
+                                                    cb.checked = false;
+                                                    return;
+                                                }
 
-                                                    let lowerRowText = rowText.toLowerCase();
-                                                    if (
-                                                        lowerRowText.includes('gb') || 
-                                                        lowerRowText.includes('mb') || 
-                                                        lowerRowText.includes('day') || 
-                                                        lowerRowText.includes('expire') || 
-                                                        lowerRowText.includes('remaining') || 
-                                                        lowerRowText.includes('traffic') || 
-                                                        lowerRowText.includes('アカウント') || 
-                                                        lowerRowText.includes('date') ||
-                                                        lowerRowText.includes('http://') ||
-                                                        lowerRowText.includes('https://')
-                                                    ) {
-                                                        cb.checked = false;
-                                                        return;
-                                                    }
+                                                let lowerRowText = rowText.toLowerCase();
+                                                if (
+                                                    lowerRowText.includes('gb') || 
+                                                    lowerRowText.includes('mb') || 
+                                                    lowerRowText.includes('day') || 
+                                                    lowerRowText.includes('expire') || 
+                                                    lowerRowText.includes('remaining') || 
+                                                    lowerRowText.includes('traffic') || 
+                                                    lowerRowText.includes('アカウント') || 
+                                                    lowerRowText.includes('date') ||
+                                                    lowerRowText.includes('http://') ||
+                                                    lowerRowText.includes('https://')
+                                                ) {
+                                                    cb.checked = false;
+                                                    return;
+                                                }
 
-                                                    if (text.includes('Timeout') || text.includes('Error')) {
-                                                        cb.checked = true;
-                                                    } else {
-                                                        cb.checked = false;
-                                                    }
+                                                if (text.includes('Timeout') || text.includes('Error')) {
+                                                    cb.checked = true;
+                                                } else {
+                                                    cb.checked = false;
                                                 }
                                             }
                                         });
